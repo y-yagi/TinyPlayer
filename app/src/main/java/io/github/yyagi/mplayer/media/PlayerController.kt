@@ -66,19 +66,38 @@ class PlayerController(
             }
 
             override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
-                _uiState.update { it.copy(currentSongId = mediaItem?.mediaId?.toLongOrNull()) }
+                _uiState.update {
+                    it.copy(
+                        currentSongId = mediaItem?.mediaId?.toLongOrNull(),
+                        positionMs = controller.currentPosition,
+                    )
+                }
             }
 
             override fun onRepeatModeChanged(repeatMode: Int) {
                 _uiState.update { it.copy(repeatMode = repeatMode) }
             }
         })
-        _uiState.update { it.copy(repeatMode = controller.repeatMode) }
+        _uiState.update {
+            it.copy(
+                currentSongId = controller.currentMediaItem?.mediaId?.toLongOrNull(),
+                title = controller.mediaMetadata.title?.toString().orEmpty(),
+                artist = controller.mediaMetadata.artist?.toString().orEmpty(),
+                albumArtUri = controller.mediaMetadata.artworkUri,
+                isPlaying = controller.isPlaying,
+                positionMs = controller.currentPosition,
+                durationMs = controller.duration.takeIf { d -> d != C.TIME_UNSET } ?: 0L,
+                repeatMode = controller.repeatMode,
+            )
+        }
 
         scope.launch {
             while (true) {
-                if (controller.isPlaying) {
-                    _uiState.update { it.copy(positionMs = controller.currentPosition) }
+                _uiState.update {
+                    it.copy(
+                        positionMs = controller.currentPosition,
+                        durationMs = controller.duration.takeIf { d -> d != C.TIME_UNSET } ?: it.durationMs,
+                    )
                 }
                 delay(500)
             }
