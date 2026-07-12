@@ -18,6 +18,7 @@ import androidx.compose.material.icons.filled.RepeatOne
 import androidx.compose.material.icons.filled.Replay10
 import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material.icons.filled.SkipPrevious
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -30,6 +31,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.media3.common.Player
+import io.github.yyagi.mplayer.ui.components.AlbumArtThumbnail
 
 @Composable
 fun NowPlayingScreen(
@@ -48,6 +50,13 @@ fun NowPlayingScreen(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
+            AlbumArtThumbnail(
+                uri = state.albumArtUri,
+                size = 240.dp,
+                shape = RoundedCornerShape(16.dp),
+                modifier = Modifier.padding(bottom = 24.dp),
+            )
+
             Text(
                 state.title.ifEmpty { "再生していません" },
                 style = MaterialTheme.typography.titleLarge,

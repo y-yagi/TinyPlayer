@@ -16,6 +16,8 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import io.github.yyagi.mplayer.ui.components.AlbumArtThumbnail
 import io.github.yyagi.mplayer.ui.library.LibraryViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -25,14 +27,12 @@ fun ArtistsScreen(
     onArtistClick: (String) -> Unit = {},
 ) {
     val songs by viewModel.songs.collectAsState()
-    val artists = songs.groupBy { it.artist }
-        .mapValues { it.value.size }
-        .toSortedMap()
+    val artistGroups = songs.groupBy { it.artist }.toSortedMap()
 
     Scaffold(
         topBar = { TopAppBar(title = { Text("アーティスト") }) },
     ) { innerPadding ->
-        if (artists.isEmpty()) {
+        if (artistGroups.isEmpty()) {
             Box(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
                 Text(
                     "曲が見つかりません",
@@ -41,10 +41,11 @@ fun ArtistsScreen(
             }
         } else {
             LazyColumn(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
-                items(artists.entries.toList(), key = { it.key }) { (artist, songCount) ->
+                items(artistGroups.entries.toList(), key = { it.key }) { (artist, artistSongs) ->
                     ListItem(
                         headlineContent = { Text(artist) },
-                        supportingContent = { Text("$songCount 曲") },
+                        supportingContent = { Text("${artistSongs.size} 曲") },
+                        leadingContent = { AlbumArtThumbnail(uri = artistSongs.first().albumArtUri, size = 40.dp) },
                         modifier = Modifier.clickable { onArtistClick(artist) },
                     )
                 }

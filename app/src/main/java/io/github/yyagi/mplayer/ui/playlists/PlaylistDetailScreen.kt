@@ -24,7 +24,9 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import io.github.yyagi.mplayer.data.song.Song
+import io.github.yyagi.mplayer.ui.components.AlbumArtThumbnail
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -59,6 +61,7 @@ fun PlaylistDetailScreen(
                     ListItem(
                         headlineContent = { Text(item.song.title) },
                         supportingContent = { Text(item.song.artist) },
+                        leadingContent = { AlbumArtThumbnail(uri = item.song.albumArtUri, size = 48.dp) },
                         modifier = Modifier.clickable { onSongClick(songs, index) },
                         trailingContent = {
                             Row {

@@ -2,6 +2,7 @@ package io.github.yyagi.mplayer.media
 
 import android.content.ComponentName
 import android.content.Context
+import android.net.Uri
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
@@ -22,6 +23,7 @@ data class PlaybackUiState(
     val currentSongId: Long? = null,
     val title: String = "",
     val artist: String = "",
+    val albumArtUri: Uri? = null,
     val isPlaying: Boolean = false,
     val positionMs: Long = 0L,
     val durationMs: Long = 0L,
@@ -57,6 +59,7 @@ class PlayerController(
                     it.copy(
                         title = mediaMetadata.title?.toString().orEmpty(),
                         artist = mediaMetadata.artist?.toString().orEmpty(),
+                        albumArtUri = mediaMetadata.artworkUri,
                         durationMs = controller.duration.takeIf { d -> d != C.TIME_UNSET } ?: 0L,
                     )
                 }
