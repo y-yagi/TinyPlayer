@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.LibraryMusic
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.QueueMusic
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
@@ -36,7 +37,9 @@ class MainActivity : ComponentActivity() {
                 val navController = rememberNavController()
                 val backStackEntry by navController.currentBackStackEntryAsState()
                 val currentRoute = backStackEntry?.destination?.route
-                val showBottomChrome = currentRoute == Destinations.LIBRARY || currentRoute == Destinations.PLAYLISTS
+                val showBottomChrome = currentRoute == Destinations.LIBRARY ||
+                    currentRoute == Destinations.ARTISTS ||
+                    currentRoute == Destinations.PLAYLISTS
                 val playbackState by container.playerController.uiState.collectAsState()
 
                 Scaffold(
@@ -56,6 +59,12 @@ class MainActivity : ComponentActivity() {
                                         onClick = { navigateToTab(navController, Destinations.LIBRARY) },
                                         icon = { Icon(Icons.Filled.LibraryMusic, contentDescription = null) },
                                         label = { Text("ライブラリ") },
+                                    )
+                                    NavigationBarItem(
+                                        selected = currentRoute == Destinations.ARTISTS,
+                                        onClick = { navigateToTab(navController, Destinations.ARTISTS) },
+                                        icon = { Icon(Icons.Filled.Person, contentDescription = null) },
+                                        label = { Text("アーティスト") },
                                     )
                                     NavigationBarItem(
                                         selected = currentRoute == Destinations.PLAYLISTS,

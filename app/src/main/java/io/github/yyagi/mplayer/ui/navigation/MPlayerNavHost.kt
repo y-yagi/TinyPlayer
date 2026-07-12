@@ -12,6 +12,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import io.github.yyagi.mplayer.data.AppContainer
+import io.github.yyagi.mplayer.ui.artists.ArtistDetailScreen
+import io.github.yyagi.mplayer.ui.artists.ArtistsScreen
 import io.github.yyagi.mplayer.ui.library.LibraryScreen
 import io.github.yyagi.mplayer.ui.library.LibraryViewModel
 import io.github.yyagi.mplayer.ui.nowplaying.NowPlayingScreen
@@ -40,6 +42,37 @@ fun MPlayerNavHost(
                     container.playerController.playQueue(songs, index)
                     navController.navigate(Destinations.NOW_PLAYING)
                 },
+            )
+        }
+
+        composable(Destinations.ARTISTS) {
+            val viewModel: LibraryViewModel = viewModel(
+                factory = LibraryViewModel.factory(context, container.songRepository, container.playlistRepository),
+            )
+            ArtistsScreen(
+                viewModel = viewModel,
+                onArtistClick = { artist ->
+                    navController.navigate(Destinations.artistDetail(artist))
+                },
+            )
+        }
+
+        composable(
+            route = Destinations.ARTIST_DETAIL,
+            arguments = listOf(navArgument("artist") { type = NavType.StringType }),
+        ) { backStackEntry ->
+            val artist = backStackEntry.arguments?.getString("artist").orEmpty()
+            val viewModel: LibraryViewModel = viewModel(
+                factory = LibraryViewModel.factory(context, container.songRepository, container.playlistRepository),
+            )
+            ArtistDetailScreen(
+                artist = artist,
+                viewModel = viewModel,
+                onSongClick = { songs, index ->
+                    container.playerController.playQueue(songs, index)
+                    navController.navigate(Destinations.NOW_PLAYING)
+                },
+                onBack = { navController.popBackStack() },
             )
         }
 
