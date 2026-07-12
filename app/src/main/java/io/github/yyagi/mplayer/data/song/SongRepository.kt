@@ -30,7 +30,7 @@ class SongRepository {
             MediaStore.Audio.Media.DURATION,
         )
         val selection = "${MediaStore.Audio.Media.IS_MUSIC} != 0"
-        val sortOrder = "${MediaStore.Audio.Media.TITLE} ASC"
+        val sortOrder = "${MediaStore.Audio.Media.DATE_MODIFIED} DESC"
         val albumArtBaseUri = Uri.parse("content://media/external/audio/albumart")
 
         val result = mutableListOf<Song>()
