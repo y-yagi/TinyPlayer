@@ -16,6 +16,10 @@ class SongRepository {
 
     fun findById(id: Long): Song? = _songs.value.firstOrNull { it.id == id }
 
+    fun removeFromCache(songId: Long) {
+        _songs.value = _songs.value.filterNot { it.id == songId }
+    }
+
     suspend fun refreshLibrary(context: Context) {
         _songs.value = withContext(Dispatchers.IO) { queryMediaStore(context) }
     }

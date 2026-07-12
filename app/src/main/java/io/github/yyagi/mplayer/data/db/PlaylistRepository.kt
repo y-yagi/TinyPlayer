@@ -36,6 +36,10 @@ class PlaylistRepository(
         playlistDao.deleteCrossRef(playlistId, songId)
     }
 
+    suspend fun removeSongEverywhere(songId: Long) {
+        playlistDao.deleteCrossRefsForSong(songId)
+    }
+
     suspend fun reorder(crossRefs: List<PlaylistSongCrossRef>) {
         playlistDao.reorder(crossRefs)
     }

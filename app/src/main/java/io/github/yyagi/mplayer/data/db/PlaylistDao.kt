@@ -33,6 +33,9 @@ interface PlaylistDao {
     @Query("DELETE FROM playlist_song_cross_ref WHERE playlistId = :playlistId AND songId = :songId")
     suspend fun deleteCrossRef(playlistId: Long, songId: Long)
 
+    @Query("DELETE FROM playlist_song_cross_ref WHERE songId = :songId")
+    suspend fun deleteCrossRefsForSong(songId: Long)
+
     @Update
     suspend fun updateCrossRefs(crossRefs: List<PlaylistSongCrossRef>)
 

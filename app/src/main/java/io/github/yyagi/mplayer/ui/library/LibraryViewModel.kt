@@ -39,6 +39,11 @@ class LibraryViewModel(
         }
     }
 
+    fun onSongDeleted(songId: Long) {
+        songRepository.removeFromCache(songId)
+        viewModelScope.launch { playlistRepository.removeSongEverywhere(songId) }
+    }
+
     companion object {
         fun factory(context: Context, songRepository: SongRepository, playlistRepository: PlaylistRepository) =
             object : ViewModelProvider.Factory {
