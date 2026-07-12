@@ -1,6 +1,7 @@
 package io.github.yyagi.mplayer.ui.nowplaying
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -8,13 +9,12 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.FastForward
-import androidx.compose.material.icons.filled.FastRewind
 import androidx.compose.material.icons.filled.Forward10
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Repeat
 import androidx.compose.material.icons.filled.RepeatOne
+import androidx.compose.material.icons.filled.Replay
 import androidx.compose.material.icons.filled.Replay10
 import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material.icons.filled.SkipPrevious
@@ -29,7 +29,13 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.media3.common.Player
 import io.github.yyagi.mplayer.ui.components.AlbumArtThumbnail
 
@@ -71,8 +77,8 @@ fun NowPlayingScreen(
             )
 
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                IconButton(onClick = { viewModel.seekBy(-30_000) }) {
-                    Icon(Icons.Filled.FastRewind, contentDescription = "30秒戻る")
+                IconButton(onClick = { viewModel.seekBy(-60_000) }) {
+                    SeekIcon(Icons.Filled.Replay, seconds = 60, contentDescription = "1分戻る")
                 }
                 IconButton(onClick = { viewModel.seekBy(-10_000) }) {
                     Icon(Icons.Filled.Replay10, contentDescription = "10秒戻る")
@@ -92,8 +98,8 @@ fun NowPlayingScreen(
                 IconButton(onClick = { viewModel.seekBy(10_000) }) {
                     Icon(Icons.Filled.Forward10, contentDescription = "10秒進む")
                 }
-                IconButton(onClick = { viewModel.seekBy(30_000) }) {
-                    Icon(Icons.Filled.FastForward, contentDescription = "30秒進む")
+                IconButton(onClick = { viewModel.seekBy(60_000) }) {
+                    SeekIcon(Icons.Filled.Replay, seconds = 60, contentDescription = "1分進む", mirror = true)
                 }
             }
 
@@ -110,5 +116,20 @@ fun NowPlayingScreen(
                 )
             }
         }
+    }
+}
+
+@Composable
+private fun SeekIcon(base: ImageVector, seconds: Int, contentDescription: String, mirror: Boolean = false) {
+    Box(
+        modifier = Modifier.semantics { this.contentDescription = contentDescription },
+        contentAlignment = Alignment.Center,
+    ) {
+        Icon(
+            base,
+            contentDescription = null,
+            modifier = if (mirror) Modifier.scale(scaleX = -1f, scaleY = 1f) else Modifier,
+        )
+        Text(text = seconds.toString(), fontSize = 10.sp, fontWeight = FontWeight.Bold)
     }
 }
