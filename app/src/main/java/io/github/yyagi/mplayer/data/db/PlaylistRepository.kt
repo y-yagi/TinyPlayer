@@ -11,6 +11,12 @@ data class PlaylistItem(
     val song: Song,
 )
 
+data class M3uImportResult(
+    val playlistId: Long,
+    val matchedCount: Int,
+    val totalCount: Int,
+)
+
 class PlaylistRepository(
     private val playlistDao: PlaylistDao,
     private val songRepository: SongRepository,
@@ -19,6 +25,24 @@ class PlaylistRepository(
 
     suspend fun createPlaylist(name: String): Long =
         playlistDao.insertPlaylist(PlaylistEntity(name = name))
+
+    suspend fun importM3u(name: String, content: String): M3uImportResult {
+        val entries = content.lineSequence()
+            .map { it.trim() }
+            .filter { it.isNotEmpty() && !it.startsWith("#") }
+            .toList()
+        val songsByFileName = songRepository.songs.value.associateBy { it.fileName.lowercase() }
+        val playlistId = createPlaylist(name)
+        var matched = 0
+        entries.forEach { path ->
+            val baseName = path.substringAfterLast('/').substringAfterLast('\\')
+            songsByFileName[baseName.lowercase()]?.let { song ->
+                addSong(playlistId, song.id)
+                matched++
+            }
+        }
+        return M3uImportResult(playlistId, matched, entries.size)
+    }
 
     suspend fun renamePlaylist(playlist: PlaylistEntity, newName: String) {
         playlistDao.updatePlaylist(playlist.copy(name = newName))

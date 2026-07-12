@@ -10,4 +10,5 @@ data class Song(
     val album: String,
     val durationMs: Long,
     val albumArtUri: Uri?,
+    val fileName: String,
 )

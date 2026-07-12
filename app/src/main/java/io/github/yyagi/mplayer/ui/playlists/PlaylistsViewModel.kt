@@ -3,6 +3,7 @@ package io.github.yyagi.mplayer.ui.playlists
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import io.github.yyagi.mplayer.data.db.M3uImportResult
 import io.github.yyagi.mplayer.data.db.PlaylistEntity
 import io.github.yyagi.mplayer.data.db.PlaylistRepository
 import kotlinx.coroutines.flow.SharingStarted
@@ -26,6 +27,10 @@ class PlaylistsViewModel(
 
     fun deletePlaylist(playlistId: Long) {
         viewModelScope.launch { playlistRepository.deletePlaylist(playlistId) }
+    }
+
+    fun importM3u(name: String, content: String, onResult: (M3uImportResult) -> Unit) {
+        viewModelScope.launch { onResult(playlistRepository.importM3u(name, content)) }
     }
 
     companion object {

@@ -32,6 +32,7 @@ class SongRepository {
             MediaStore.Audio.Media.ALBUM,
             MediaStore.Audio.Media.ALBUM_ID,
             MediaStore.Audio.Media.DURATION,
+            MediaStore.Audio.Media.DISPLAY_NAME,
         )
         val selection = "${MediaStore.Audio.Media.IS_MUSIC} != 0"
         val sortOrder = "${MediaStore.Audio.Media.DATE_MODIFIED} DESC"
@@ -51,6 +52,7 @@ class SongRepository {
             val albumCol = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM)
             val albumIdCol = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM_ID)
             val durationCol = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DURATION)
+            val fileNameCol = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DISPLAY_NAME)
 
             while (cursor.moveToNext()) {
                 val id = cursor.getLong(idCol)
@@ -63,6 +65,7 @@ class SongRepository {
                     album = cursor.getString(albumCol) ?: "",
                     durationMs = cursor.getLong(durationCol),
                     albumArtUri = ContentUris.withAppendedId(albumArtBaseUri, albumId),
+                    fileName = cursor.getString(fileNameCol) ?: "",
                 )
             }
         }
