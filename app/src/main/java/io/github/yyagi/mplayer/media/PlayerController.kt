@@ -30,6 +30,8 @@ data class PlaybackUiState(
     val repeatMode: Int = Player.REPEAT_MODE_OFF,
 )
 
+private const val MAX_REMEMBERED_POSITIONS = 5
+
 class PlayerController(
     private val context: Context,
     private val scope: CoroutineScope,
@@ -38,6 +40,11 @@ class PlayerController(
     val uiState: StateFlow<PlaybackUiState> = _uiState.asStateFlow()
 
     private var controller: MediaController? = null
+
+    private val lastPositions = object : LinkedHashMap<Long, Long>(MAX_REMEMBERED_POSITIONS, 0.75f, false) {
+        override fun removeEldestEntry(eldest: MutableMap.MutableEntry<Long, Long>) =
+            size > MAX_REMEMBERED_POSITIONS
+    }
 
     init {
         scope.launch {
@@ -106,7 +113,12 @@ class PlayerController(
 
     fun playQueue(songs: List<Song>, startIndex: Int) {
         val controller = controller ?: return
-        controller.setMediaItems(songs.map { it.toMediaItem() }, startIndex, 0L)
+        _uiState.value.currentSongId?.let { previousId ->
+            lastPositions[previousId] = controller.currentPosition
+        }
+        val targetSongId = songs.getOrNull(startIndex)?.id
+        val resumePositionMs = targetSongId?.let { lastPositions[it] } ?: 0L
+        controller.setMediaItems(songs.map { it.toMediaItem() }, startIndex, resumePositionMs)
         controller.prepare()
         controller.play()
     }
