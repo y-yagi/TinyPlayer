@@ -76,6 +76,14 @@ fun NowPlayingScreen(
                 modifier = Modifier.fillMaxWidth(),
             )
 
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+            ) {
+                Text(formatDurationMs(state.positionMs), style = MaterialTheme.typography.bodySmall)
+                Text(formatDurationMs(state.durationMs), style = MaterialTheme.typography.bodySmall)
+            }
+
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 IconButton(onClick = { viewModel.seekBy(-60_000) }) {
                     SeekIcon(Icons.Filled.Replay, seconds = 60, contentDescription = "1分戻る")
@@ -117,6 +125,13 @@ fun NowPlayingScreen(
             }
         }
     }
+}
+
+private fun formatDurationMs(ms: Long): String {
+    val totalSeconds = (ms / 1000).coerceAtLeast(0)
+    val minutes = totalSeconds / 60
+    val seconds = totalSeconds % 60
+    return "%d:%02d".format(minutes, seconds)
 }
 
 @Composable
