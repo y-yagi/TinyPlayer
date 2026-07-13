@@ -27,6 +27,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
@@ -45,6 +49,8 @@ fun NowPlayingScreen(
     onBack: () -> Unit = {},
 ) {
     val state by viewModel.uiState.collectAsState()
+    var isDragging by remember { mutableStateOf(false) }
+    var dragPositionMs by remember { mutableFloatStateOf(0f) }
 
     Column(modifier = Modifier.fillMaxSize()) {
         IconButton(onClick = onBack, modifier = Modifier.padding(8.dp)) {
@@ -70,8 +76,15 @@ fun NowPlayingScreen(
             Text(state.artist, style = MaterialTheme.typography.bodyMedium)
 
             Slider(
-                value = state.positionMs.toFloat(),
-                onValueChange = { viewModel.seekTo(it.toLong()) },
+                value = if (isDragging) dragPositionMs else state.positionMs.toFloat(),
+                onValueChange = {
+                    isDragging = true
+                    dragPositionMs = it
+                },
+                onValueChangeFinished = {
+                    viewModel.seekTo(dragPositionMs.toLong())
+                    isDragging = false
+                },
                 valueRange = 0f..state.durationMs.coerceAtLeast(1L).toFloat(),
                 modifier = Modifier.fillMaxWidth(),
             )
@@ -80,7 +93,10 @@ fun NowPlayingScreen(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
             ) {
-                Text(formatDurationMs(state.positionMs), style = MaterialTheme.typography.bodySmall)
+                Text(
+                    formatDurationMs(if (isDragging) dragPositionMs.toLong() else state.positionMs),
+                    style = MaterialTheme.typography.bodySmall,
+                )
                 Text(formatDurationMs(state.durationMs), style = MaterialTheme.typography.bodySmall)
             }
 
