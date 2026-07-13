@@ -1,4 +1,4 @@
-# MPlayer
+# TinyPlayer
 
 ## デプロイ
 

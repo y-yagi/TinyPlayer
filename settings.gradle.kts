@@ -22,5 +22,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "MPlayer"
+rootProject.name = "TinyPlayer"
 include(":app")

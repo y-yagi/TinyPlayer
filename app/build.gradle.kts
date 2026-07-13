@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace = "io.github.yyagi.mplayer"
+    namespace = "io.github.yyagi.tinyplayer"
     compileSdk {
         version = release(36) {
             minorApiLevel = 1
@@ -14,7 +14,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "io.github.yyagi.mplayer"
+        applicationId = "io.github.yyagi.tinyplayer"
         minSdk = 34
         targetSdk = 36
         versionCode = 1
