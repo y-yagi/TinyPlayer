@@ -20,10 +20,26 @@ private val DarkColorScheme = darkColorScheme(
     secondaryContainer = BlueGreyContainerDark,
     onSecondaryContainer = OnBlueGreyContainerDark,
     tertiary = SkyBlue80,
+    onTertiary = OnSkyBlue80,
+    tertiaryContainer = SkyBlueContainerDark,
+    onTertiaryContainer = OnSkyBlueContainerDark,
+    error = Error80,
+    onError = OnError80,
+    errorContainer = ErrorContainerDark,
+    onErrorContainer = OnErrorContainerDark,
     background = BackgroundDark,
+    onBackground = OnSurfaceDark,
     surface = SurfaceDark,
+    onSurface = OnSurfaceDark,
     surfaceVariant = SurfaceVariantDark,
     onSurfaceVariant = OnSurfaceVariantDark,
+    outline = OutlineDark,
+    outlineVariant = OutlineVariantDark,
+    inverseSurface = InverseSurfaceDark,
+    inverseOnSurface = InverseOnSurfaceDark,
+    inversePrimary = Blue40,
+    surfaceTint = Blue80,
+    scrim = ScrimColor,
 )
 
 private val LightColorScheme = lightColorScheme(
@@ -36,10 +52,26 @@ private val LightColorScheme = lightColorScheme(
     secondaryContainer = BlueGreyContainerLight,
     onSecondaryContainer = OnBlueGreyContainerLight,
     tertiary = SkyBlue40,
+    onTertiary = OnSkyBlue40,
+    tertiaryContainer = SkyBlueContainerLight,
+    onTertiaryContainer = OnSkyBlueContainerLight,
+    error = Error40,
+    onError = OnError40,
+    errorContainer = ErrorContainerLight,
+    onErrorContainer = OnErrorContainerLight,
     background = BackgroundLight,
+    onBackground = OnSurfaceLight,
     surface = SurfaceLight,
+    onSurface = OnSurfaceLight,
     surfaceVariant = SurfaceVariantLight,
     onSurfaceVariant = OnSurfaceVariantLight,
+    outline = OutlineLight,
+    outlineVariant = OutlineVariantLight,
+    inverseSurface = InverseSurfaceLight,
+    inverseOnSurface = InverseOnSurfaceLight,
+    inversePrimary = Blue80,
+    surfaceTint = Blue40,
+    scrim = ScrimColor,
 )
 
 @Composable
@@ -60,6 +92,7 @@ fun TinyPlayerTheme(
     MaterialTheme(
         colorScheme = colorScheme,
         typography = Typography,
+        shapes = Shapes,
         content = content,
     )
 }

@@ -1,10 +1,14 @@
 package io.github.yyagi.tinyplayer.ui.playlists
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
@@ -12,12 +16,16 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material.icons.filled.QueueMusic
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
+import androidx.compose.material3.ListItemDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -59,34 +67,65 @@ fun PlaylistDetailScreen(
     ) { innerPadding ->
         if (items.isEmpty()) {
             Box(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
-                Text("曲がありません", modifier = Modifier.align(Alignment.Center))
+                Column(
+                    modifier = Modifier.align(Alignment.Center),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    Icon(
+                        Icons.Filled.QueueMusic,
+                        contentDescription = null,
+                        modifier = Modifier.size(64.dp).padding(bottom = 12.dp),
+                        tint = MaterialTheme.colorScheme.outline,
+                    )
+                    Text(
+                        "曲がありません",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
             }
         } else {
             val songs = items.map { it.song }
-            LazyColumn(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
+            LazyColumn(
+                modifier = Modifier.fillMaxSize().padding(innerPadding),
+                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
                 itemsIndexed(items, key = { _, item -> item.crossRefId }) { index, item ->
-                    ListItem(
-                        headlineContent = { Text(item.song.title) },
-                        supportingContent = { Text(item.song.artist) },
-                        leadingContent = { AlbumArtThumbnail(uri = item.song.albumArtUri, size = 48.dp) },
+                    Surface(
+                        shape = MaterialTheme.shapes.small,
+                        color = MaterialTheme.colorScheme.surfaceContainerLow,
                         modifier = Modifier.clickable { onSongClick(songs, index) },
-                        trailingContent = {
-                            Row {
-                                IconButton(onClick = { viewModel.moveUp(index) }, enabled = index > 0) {
-                                    Icon(Icons.Filled.KeyboardArrowUp, contentDescription = "上へ")
+                    ) {
+                        ListItem(
+                            headlineContent = { Text(item.song.title) },
+                            supportingContent = { Text(item.song.artist) },
+                            leadingContent = {
+                                AlbumArtThumbnail(
+                                    uri = item.song.albumArtUri,
+                                    size = 56.dp,
+                                    shape = MaterialTheme.shapes.small,
+                                )
+                            },
+                            trailingContent = {
+                                Row {
+                                    IconButton(onClick = { viewModel.moveUp(index) }, enabled = index > 0) {
+                                        Icon(Icons.Filled.KeyboardArrowUp, contentDescription = "上へ")
+                                    }
+                                    IconButton(
+                                        onClick = { viewModel.moveDown(index) },
+                                        enabled = index < items.lastIndex,
+                                    ) {
+                                        Icon(Icons.Filled.KeyboardArrowDown, contentDescription = "下へ")
+                                    }
+                                    IconButton(onClick = { removeTarget = item }) {
+                                        Icon(Icons.Filled.Delete, contentDescription = "削除")
+                                    }
                                 }
-                                IconButton(
-                                    onClick = { viewModel.moveDown(index) },
-                                    enabled = index < items.lastIndex,
-                                ) {
-                                    Icon(Icons.Filled.KeyboardArrowDown, contentDescription = "下へ")
-                                }
-                                IconButton(onClick = { removeTarget = item }) {
-                                    Icon(Icons.Filled.Delete, contentDescription = "削除")
-                                }
-                            }
-                        },
-                    )
+                            },
+                            colors = ListItemDefaults.colors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
+                        )
+                    }
                 }
             }
         }

@@ -16,6 +16,9 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
+import androidx.compose.material3.ListItemDefaults
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -25,6 +28,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
 import io.github.yyagi.tinyplayer.data.db.PlaylistEntity
 import io.github.yyagi.tinyplayer.data.song.Song
 
@@ -51,41 +55,47 @@ fun SongListItem(
         }
     }
 
-    ListItem(
-        headlineContent = { Text(song.title) },
-        supportingContent = { Text(subtitle) },
+    Surface(
+        shape = MaterialTheme.shapes.small,
+        color = MaterialTheme.colorScheme.surfaceContainerLow,
         modifier = Modifier.clickable(onClick = onClick),
-        leadingContent = { AlbumArtThumbnail(uri = song.albumArtUri) },
-        trailingContent = {
-            Box {
-                IconButton(onClick = { menuExpanded = true }) {
-                    Icon(Icons.Filled.MoreVert, contentDescription = "メニュー")
+    ) {
+        ListItem(
+            headlineContent = { Text(song.title) },
+            supportingContent = { Text(subtitle) },
+            leadingContent = { AlbumArtThumbnail(uri = song.albumArtUri, size = 56.dp, shape = MaterialTheme.shapes.small) },
+            trailingContent = {
+                Box {
+                    IconButton(onClick = { menuExpanded = true }) {
+                        Icon(Icons.Filled.MoreVert, contentDescription = "メニュー")
+                    }
+                    DropdownMenu(
+                        expanded = menuExpanded,
+                        onDismissRequest = { menuExpanded = false },
+                    ) {
+                        DropdownMenuItem(
+                            text = { Text("プレイリストに追加") },
+                            onClick = {
+                                menuExpanded = false
+                                showAddToPlaylistDialog = true
+                            },
+                        )
+                        DropdownMenuItem(
+                            text = { Text("削除") },
+                            onClick = {
+                                menuExpanded = false
+                                showDeleteConfirm = true
+                            },
+                            leadingIcon = {
+                                Icon(Icons.Filled.Delete, contentDescription = null)
+                            },
+                        )
+                    }
                 }
-                DropdownMenu(
-                    expanded = menuExpanded,
-                    onDismissRequest = { menuExpanded = false },
-                ) {
-                    DropdownMenuItem(
-                        text = { Text("プレイリストに追加") },
-                        onClick = {
-                            menuExpanded = false
-                            showAddToPlaylistDialog = true
-                        },
-                    )
-                    DropdownMenuItem(
-                        text = { Text("削除") },
-                        onClick = {
-                            menuExpanded = false
-                            showDeleteConfirm = true
-                        },
-                        leadingIcon = {
-                            Icon(Icons.Filled.Delete, contentDescription = null)
-                        },
-                    )
-                }
-            }
-        },
-    )
+            },
+            colors = ListItemDefaults.colors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
+        )
+    }
 
     if (showAddToPlaylistDialog) {
         AddToPlaylistDialog(

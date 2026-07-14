@@ -4,7 +4,6 @@ import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material3.Icon
@@ -27,7 +26,7 @@ import coil3.compose.SubcomposeAsyncImageContent
 fun AlbumArtThumbnail(
     uri: Uri?,
     size: Dp = 48.dp,
-    shape: Shape = RoundedCornerShape(4.dp),
+    shape: Shape = MaterialTheme.shapes.small,
     modifier: Modifier = Modifier,
 ) {
     Box(
