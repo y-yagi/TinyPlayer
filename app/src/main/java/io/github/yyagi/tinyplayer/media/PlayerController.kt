@@ -11,6 +11,7 @@ import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
 import io.github.yyagi.tinyplayer.data.song.Song
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -28,6 +29,7 @@ data class PlaybackUiState(
     val positionMs: Long = 0L,
     val durationMs: Long = 0L,
     val repeatMode: Int = Player.REPEAT_MODE_OFF,
+    val sleepTimerEndTimeMs: Long? = null,
 )
 
 private const val MAX_REMEMBERED_POSITIONS = 5
@@ -40,6 +42,7 @@ class PlayerController(
     val uiState: StateFlow<PlaybackUiState> = _uiState.asStateFlow()
 
     private var controller: MediaController? = null
+    private var sleepTimerJob: Job? = null
 
     private val lastPositions = object : LinkedHashMap<Long, Long>(MAX_REMEMBERED_POSITIONS, 0.75f, false) {
         override fun removeEldestEntry(eldest: MutableMap.MutableEntry<Long, Long>) =
@@ -156,6 +159,24 @@ class PlayerController(
             Player.REPEAT_MODE_ONE -> Player.REPEAT_MODE_ALL
             else -> Player.REPEAT_MODE_OFF
         }
+    }
+
+    fun setSleepTimer(durationMs: Long) {
+        val controller = controller ?: return
+        sleepTimerJob?.cancel()
+        val endTime = System.currentTimeMillis() + durationMs
+        _uiState.update { it.copy(sleepTimerEndTimeMs = endTime) }
+        sleepTimerJob = scope.launch {
+            delay(durationMs)
+            controller.pause()
+            _uiState.update { it.copy(sleepTimerEndTimeMs = null) }
+        }
+    }
+
+    fun cancelSleepTimer() {
+        sleepTimerJob?.cancel()
+        sleepTimerJob = null
+        _uiState.update { it.copy(sleepTimerEndTimeMs = null) }
     }
 }
 

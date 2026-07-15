@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Bedtime
 import androidx.compose.material.icons.filled.Forward10
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
@@ -50,6 +51,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.media3.common.Player
 import io.github.yyagi.tinyplayer.ui.components.AlbumArtThumbnail
+import io.github.yyagi.tinyplayer.ui.components.SleepTimerDialog
 
 @Composable
 fun NowPlayingScreen(
@@ -59,6 +61,7 @@ fun NowPlayingScreen(
     val state by viewModel.uiState.collectAsState()
     var isDragging by remember { mutableStateOf(false) }
     var dragPositionMs by remember { mutableFloatStateOf(0f) }
+    var showSleepTimerDialog by remember { mutableStateOf(false) }
 
     Box(
         modifier = Modifier.fillMaxSize().background(
@@ -68,13 +71,41 @@ fun NowPlayingScreen(
         ),
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
-            IconButton(
-                onClick = onBack,
-                modifier = Modifier
-                    .padding(8.dp)
-                    .background(MaterialTheme.colorScheme.surfaceContainerHigh, CircleShape),
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(8.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
             ) {
-                Icon(Icons.Filled.ArrowBack, contentDescription = "戻る")
+                IconButton(
+                    onClick = onBack,
+                    modifier = Modifier.background(MaterialTheme.colorScheme.surfaceContainerHigh, CircleShape),
+                ) {
+                    Icon(Icons.Filled.ArrowBack, contentDescription = "戻る")
+                }
+
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    IconButton(
+                        onClick = { showSleepTimerDialog = true },
+                        modifier = Modifier.background(MaterialTheme.colorScheme.surfaceContainerHigh, CircleShape),
+                    ) {
+                        Icon(
+                            Icons.Filled.Bedtime,
+                            contentDescription = "スリープタイマー",
+                            tint = if (state.sleepTimerEndTimeMs != null) {
+                                MaterialTheme.colorScheme.primary
+                            } else {
+                                MaterialTheme.colorScheme.onSurfaceVariant
+                            },
+                        )
+                    }
+                    state.sleepTimerEndTimeMs?.let { endTime ->
+                        Text(
+                            formatRemainingMinutes(endTime),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.primary,
+                        )
+                    }
+                }
             }
 
             Column(
@@ -215,7 +246,22 @@ fun NowPlayingScreen(
                 }
             }
         }
+
+        if (showSleepTimerDialog) {
+            SleepTimerDialog(
+                isActive = state.sleepTimerEndTimeMs != null,
+                onDismiss = { showSleepTimerDialog = false },
+                onSelect = { durationMs -> viewModel.setSleepTimer(durationMs) },
+                onCancelTimer = { viewModel.cancelSleepTimer() },
+            )
+        }
     }
+}
+
+private fun formatRemainingMinutes(endTimeMs: Long): String {
+    val remainingMs = (endTimeMs - System.currentTimeMillis()).coerceAtLeast(0)
+    val minutes = (remainingMs + 59_999) / 60_000
+    return "残り${minutes}分"
 }
 
 private fun formatDurationMs(ms: Long): String {

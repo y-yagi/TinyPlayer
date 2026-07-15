@@ -17,6 +17,8 @@ class NowPlayingViewModel(
     fun seekBy(deltaMs: Long) = playerController.seekBy(deltaMs)
     fun seekTo(positionMs: Long) = playerController.seekTo(positionMs)
     fun cycleRepeatMode() = playerController.cycleRepeatMode()
+    fun setSleepTimer(durationMs: Long) = playerController.setSleepTimer(durationMs)
+    fun cancelSleepTimer() = playerController.cancelSleepTimer()
 
     companion object {
         fun factory(playerController: PlayerController) =
