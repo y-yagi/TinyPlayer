@@ -5,16 +5,13 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.LibraryMusic
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.QueueMusic
 import androidx.compose.material3.Icon
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -42,46 +39,44 @@ class MainActivity : ComponentActivity() {
                     currentRoute == Destinations.PLAYLISTS
                 val playbackState by container.playerController.uiState.collectAsState()
 
-                Scaffold(
-                    bottomBar = {
+                NavigationSuiteScaffold(
+                    navigationSuiteItems = {
                         if (showBottomChrome) {
-                            Column {
-                                if (playbackState.title.isNotEmpty()) {
-                                    MiniPlayerBar(
-                                        state = playbackState,
-                                        onClick = { navController.navigate(Destinations.NOW_PLAYING) },
-                                        onTogglePlayPause = { container.playerController.togglePlayPause() },
-                                    )
-                                }
-                                NavigationBar {
-                                    NavigationBarItem(
-                                        selected = currentRoute == Destinations.LIBRARY,
-                                        onClick = { navigateToTab(navController, Destinations.LIBRARY) },
-                                        icon = { Icon(Icons.Filled.LibraryMusic, contentDescription = null) },
-                                        label = { Text("ライブラリ") },
-                                    )
-                                    NavigationBarItem(
-                                        selected = currentRoute == Destinations.ARTISTS,
-                                        onClick = { navigateToTab(navController, Destinations.ARTISTS) },
-                                        icon = { Icon(Icons.Filled.Person, contentDescription = null) },
-                                        label = { Text("アーティスト") },
-                                    )
-                                    NavigationBarItem(
-                                        selected = currentRoute == Destinations.PLAYLISTS,
-                                        onClick = { navigateToTab(navController, Destinations.PLAYLISTS) },
-                                        icon = { Icon(Icons.Filled.QueueMusic, contentDescription = null) },
-                                        label = { Text("プレイリスト") },
-                                    )
-                                }
-                            }
+                            item(
+                                selected = currentRoute == Destinations.LIBRARY,
+                                onClick = { navigateToTab(navController, Destinations.LIBRARY) },
+                                icon = { Icon(Icons.Filled.LibraryMusic, contentDescription = null) },
+                                label = { Text("ライブラリ") },
+                            )
+                            item(
+                                selected = currentRoute == Destinations.ARTISTS,
+                                onClick = { navigateToTab(navController, Destinations.ARTISTS) },
+                                icon = { Icon(Icons.Filled.Person, contentDescription = null) },
+                                label = { Text("アーティスト") },
+                            )
+                            item(
+                                selected = currentRoute == Destinations.PLAYLISTS,
+                                onClick = { navigateToTab(navController, Destinations.PLAYLISTS) },
+                                icon = { Icon(Icons.Filled.QueueMusic, contentDescription = null) },
+                                label = { Text("プレイリスト") },
+                            )
                         }
                     },
-                ) { innerPadding ->
-                    TinyPlayerNavHost(
-                        navController = navController,
-                        container = container,
-                        modifier = Modifier.padding(innerPadding),
-                    )
+                ) {
+                    Column {
+                        TinyPlayerNavHost(
+                            navController = navController,
+                            container = container,
+                            modifier = Modifier.weight(1f),
+                        )
+                        if (showBottomChrome && playbackState.title.isNotEmpty()) {
+                            MiniPlayerBar(
+                                state = playbackState,
+                                onClick = { navController.navigate(Destinations.NOW_PLAYING) },
+                                onTogglePlayPause = { container.playerController.togglePlayPause() },
+                            )
+                        }
+                    }
                 }
             }
         }
