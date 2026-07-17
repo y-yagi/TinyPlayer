@@ -19,6 +19,7 @@ class LibraryViewModel(
     private val playlistRepository: PlaylistRepository,
 ) : ViewModel() {
     val songs: StateFlow<List<Song>> = songRepository.songs
+    val isLoading: StateFlow<Boolean> = songRepository.isLoading
     val playlists: StateFlow<List<PlaylistEntity>> = playlistRepository.playlists
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 

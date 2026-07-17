@@ -11,6 +11,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.LibraryMusic
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -34,13 +35,18 @@ fun LibraryScreen(
     onSongClick: (List<Song>, Int) -> Unit = { _, _ -> },
 ) {
     val songs by viewModel.songs.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsState()
     val playlists by viewModel.playlists.collectAsState()
 
     PermissionGate(onGranted = { viewModel.refresh() }) {
         Scaffold(
             topBar = { TopAppBar(title = { Text("ライブラリ") }) },
         ) { innerPadding ->
-            if (songs.isEmpty()) {
+            if (isLoading) {
+                Box(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
+                    CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+                }
+            } else if (songs.isEmpty()) {
                 Box(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
                     Column(
                         modifier = Modifier.align(Alignment.Center),

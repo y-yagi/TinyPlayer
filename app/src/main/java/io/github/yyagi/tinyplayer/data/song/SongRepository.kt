@@ -14,6 +14,9 @@ class SongRepository {
     private val _songs = MutableStateFlow<List<Song>>(emptyList())
     val songs: StateFlow<List<Song>> = _songs.asStateFlow()
 
+    private val _isLoading = MutableStateFlow(true)
+    val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
+
     fun findById(id: Long): Song? = _songs.value.firstOrNull { it.id == id }
 
     fun removeFromCache(songId: Long) {
@@ -21,7 +24,9 @@ class SongRepository {
     }
 
     suspend fun refreshLibrary(context: Context) {
+        _isLoading.value = true
         _songs.value = withContext(Dispatchers.IO) { queryMediaStore(context) }
+        _isLoading.value = false
     }
 
     private fun queryMediaStore(context: Context): List<Song> {
