@@ -16,6 +16,6 @@ class AppContainer(context: Context) {
     private val database: AppDatabase by lazy { AppDatabase.getInstance(appContext) }
 
     val songRepository: SongRepository by lazy { SongRepository() }
-    val playerController: PlayerController by lazy { PlayerController(appContext, appScope) }
+    val playerController: PlayerController by lazy { PlayerController(appContext, appScope, songRepository) }
     val playlistRepository: PlaylistRepository by lazy { PlaylistRepository(database.playlistDao(), songRepository) }
 }

@@ -10,15 +10,18 @@ import androidx.media3.common.Player
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
 import io.github.yyagi.tinyplayer.data.song.Song
+import io.github.yyagi.tinyplayer.data.song.SongRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.guava.await
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 
 data class PlaybackUiState(
     val currentSongId: Long? = null,
@@ -33,10 +36,14 @@ data class PlaybackUiState(
 )
 
 private const val MAX_REMEMBERED_POSITIONS = 5
+private const val POSITION_SAVE_INTERVAL_TICKS = 10
+private const val RESTORE_TIMEOUT_MS = 10_000L
 
 class PlayerController(
     private val context: Context,
     private val scope: CoroutineScope,
+    private val songRepository: SongRepository,
+    private val playbackStateStore: PlaybackStateStore = PlaybackStateStore(context),
 ) {
     private val _uiState = MutableStateFlow(PlaybackUiState())
     val uiState: StateFlow<PlaybackUiState> = _uiState.asStateFlow()
@@ -55,6 +62,7 @@ class PlayerController(
             val mediaController = MediaController.Builder(context, token).buildAsync().await()
             controller = mediaController
             attachListener(mediaController)
+            restoreLastPlayback(mediaController)
         }
     }
 
@@ -62,6 +70,11 @@ class PlayerController(
         controller.addListener(object : Player.Listener {
             override fun onIsPlayingChanged(isPlaying: Boolean) {
                 _uiState.update { it.copy(isPlaying = isPlaying) }
+                if (!isPlaying) {
+                    _uiState.value.currentSongId?.let { id ->
+                        playbackStateStore.save(id, controller.currentPosition)
+                    }
+                }
             }
 
             override fun onMediaMetadataChanged(mediaMetadata: MediaMetadata) {
@@ -81,6 +94,9 @@ class PlayerController(
                         currentSongId = mediaItem?.mediaId?.toLongOrNull(),
                         positionMs = controller.currentPosition,
                     )
+                }
+                mediaItem?.mediaId?.toLongOrNull()?.let { id ->
+                    playbackStateStore.save(id, controller.currentPosition)
                 }
             }
 
@@ -102,6 +118,7 @@ class PlayerController(
         }
 
         scope.launch {
+            var tick = 0
             while (true) {
                 _uiState.update {
                     it.copy(
@@ -109,9 +126,23 @@ class PlayerController(
                         durationMs = controller.duration.takeIf { d -> d != C.TIME_UNSET } ?: it.durationMs,
                     )
                 }
+                tick++
+                if (tick % POSITION_SAVE_INTERVAL_TICKS == 0) {
+                    _uiState.value.currentSongId?.let { id ->
+                        playbackStateStore.save(id, controller.currentPosition)
+                    }
+                }
                 delay(500)
             }
         }
+    }
+
+    private suspend fun restoreLastPlayback(controller: MediaController) {
+        val saved = playbackStateStore.load() ?: return
+        val songs = withTimeoutOrNull(RESTORE_TIMEOUT_MS) { songRepository.songs.first { it.isNotEmpty() } } ?: return
+        val song = songs.firstOrNull { it.id == saved.songId } ?: return
+        controller.setMediaItem(song.toMediaItem(), saved.positionMs)
+        controller.prepare()
     }
 
     fun playQueue(songs: List<Song>, startIndex: Int) {
