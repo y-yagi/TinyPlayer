@@ -44,6 +44,7 @@ import androidx.compose.ui.unit.dp
 import io.github.yyagi.tinyplayer.data.db.PlaylistItem
 import io.github.yyagi.tinyplayer.data.song.Song
 import io.github.yyagi.tinyplayer.ui.components.AlbumArtThumbnail
+import io.github.yyagi.tinyplayer.ui.util.subtitleWithDuration
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -112,7 +113,7 @@ fun PlaylistDetailScreen(
                             },
                             supportingContent = {
                                 Text(
-                                    item.song.artist,
+                                    subtitleWithDuration(item.song.durationMs, item.song.artist),
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis,
                                     style = MaterialTheme.typography.bodySmall,

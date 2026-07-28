@@ -42,6 +42,7 @@ TinyPlayer is a local (offline) music player app. Single Gradle module (`:app`),
 | `ui/permission/` | `PermissionGate.kt` |
 | `ui/playlists/` | `PlaylistsScreen`/`PlaylistsViewModel`, `PlaylistDetailScreen`/`PlaylistDetailViewModel` |
 | `ui/theme/` | Compose Material 3 theme definitions |
+| `ui/util/` | `DurationFormat.kt` — duration/subtitle string formatting shared by list rows and Now Playing |
 
 ## Key Classes
 

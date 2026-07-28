@@ -32,6 +32,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import io.github.yyagi.tinyplayer.data.db.PlaylistEntity
 import io.github.yyagi.tinyplayer.data.song.Song
+import io.github.yyagi.tinyplayer.ui.util.subtitleWithDuration
 
 @Composable
 fun SongListItem(
@@ -72,7 +73,7 @@ fun SongListItem(
             },
             supportingContent = {
                 Text(
-                    subtitle,
+                    subtitleWithDuration(song.durationMs, subtitle),
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                     style = MaterialTheme.typography.bodySmall,

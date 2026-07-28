@@ -53,6 +53,7 @@ import androidx.compose.ui.unit.dp
 import androidx.media3.common.Player
 import io.github.yyagi.tinyplayer.ui.components.AlbumArtThumbnail
 import io.github.yyagi.tinyplayer.ui.components.SleepTimerDialog
+import io.github.yyagi.tinyplayer.ui.util.formatDurationMs
 
 @Composable
 fun NowPlayingScreen(
@@ -265,17 +266,6 @@ private fun formatRemainingMinutes(endTimeMs: Long): String {
     return "残り${minutes}分"
 }
 
-private fun formatDurationMs(ms: Long): String {
-    val totalSeconds = (ms / 1000).coerceAtLeast(0)
-    val hours = totalSeconds / 3600
-    val minutes = (totalSeconds % 3600) / 60
-    val seconds = totalSeconds % 60
-    return if (hours > 0) {
-        "%d:%02d:%02d".format(hours, minutes, seconds)
-    } else {
-        "%d:%02d".format(minutes, seconds)
-    }
-}
 
 @Composable
 private fun SeekIcon(base: ImageVector, seconds: Int, contentDescription: String, mirror: Boolean = false) {
