@@ -12,6 +12,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import io.github.yyagi.tinyplayer.data.AppContainer
+import io.github.yyagi.tinyplayer.data.song.Song
 import io.github.yyagi.tinyplayer.ui.artists.ArtistDetailScreen
 import io.github.yyagi.tinyplayer.ui.artists.ArtistsScreen
 import io.github.yyagi.tinyplayer.ui.library.LibraryScreen
@@ -38,10 +39,7 @@ fun TinyPlayerNavHost(
             )
             LibraryScreen(
                 viewModel = viewModel,
-                onSongClick = { songs, index ->
-                    container.playerController.playQueue(songs, index)
-                    navController.navigate(Destinations.NOW_PLAYING)
-                },
+                onSongClick = { songs, index -> onSongClick(container, navController, songs, index) },
             )
         }
 
@@ -68,10 +66,7 @@ fun TinyPlayerNavHost(
             ArtistDetailScreen(
                 artist = artist,
                 viewModel = viewModel,
-                onSongClick = { songs, index ->
-                    container.playerController.playQueue(songs, index)
-                    navController.navigate(Destinations.NOW_PLAYING)
-                },
+                onSongClick = { songs, index -> onSongClick(container, navController, songs, index) },
                 onBack = { navController.popBackStack() },
             )
         }
@@ -104,10 +99,7 @@ fun TinyPlayerNavHost(
             PlaylistDetailScreen(
                 playlistName = playlistName,
                 viewModel = viewModel,
-                onSongClick = { songs, index ->
-                    container.playerController.playQueue(songs, index)
-                    navController.navigate(Destinations.NOW_PLAYING)
-                },
+                onSongClick = { songs, index -> onSongClick(container, navController, songs, index) },
                 onBack = { navController.popBackStack() },
             )
         }
@@ -118,5 +110,24 @@ fun TinyPlayerNavHost(
             )
             NowPlayingScreen(viewModel = viewModel, onBack = { navController.popBackStack() })
         }
+    }
+}
+
+/**
+ * Tapping a song that is already the current track opens the Now Playing screen; tapping any other
+ * song starts it and leaves the user on the list so they can keep browsing. Matching on the current
+ * track rather than on isPlaying keeps a paused song from restarting on tap.
+ */
+private fun onSongClick(
+    container: AppContainer,
+    navController: NavHostController,
+    songs: List<Song>,
+    index: Int,
+) {
+    val song = songs.getOrNull(index) ?: return
+    if (song.id == container.playerController.uiState.value.currentSongId) {
+        navController.navigate(Destinations.NOW_PLAYING)
+    } else {
+        container.playerController.playQueue(songs, index)
     }
 }
