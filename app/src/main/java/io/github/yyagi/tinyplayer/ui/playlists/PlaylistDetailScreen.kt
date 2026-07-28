@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -16,8 +15,11 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.QueueMusic
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -37,6 +39,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import io.github.yyagi.tinyplayer.data.db.PlaylistItem
 import io.github.yyagi.tinyplayer.data.song.Song
@@ -88,38 +91,81 @@ fun PlaylistDetailScreen(
             val songs = items.map { it.song }
             LazyColumn(
                 modifier = Modifier.fillMaxSize().padding(innerPadding),
-                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
+                contentPadding = PaddingValues(horizontal = 8.dp, vertical = 8.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 itemsIndexed(items, key = { _, item -> item.crossRefId }) { index, item ->
+                    var menuExpanded by remember { mutableStateOf(false) }
                     Surface(
                         shape = MaterialTheme.shapes.small,
                         color = MaterialTheme.colorScheme.surfaceContainerLow,
                         modifier = Modifier.clickable { onSongClick(songs, index) },
                     ) {
                         ListItem(
-                            headlineContent = { Text(item.song.title) },
-                            supportingContent = { Text(item.song.artist) },
+                            headlineContent = {
+                                Text(
+                                    item.song.title,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                )
+                            },
+                            supportingContent = {
+                                Text(
+                                    item.song.artist,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                    style = MaterialTheme.typography.bodySmall,
+                                )
+                            },
                             leadingContent = {
                                 AlbumArtThumbnail(
                                     uri = item.song.albumArtUri,
-                                    size = 56.dp,
+                                    size = 48.dp,
                                     shape = MaterialTheme.shapes.small,
                                 )
                             },
                             trailingContent = {
-                                Row {
-                                    IconButton(onClick = { viewModel.moveUp(index) }, enabled = index > 0) {
-                                        Icon(Icons.Filled.KeyboardArrowUp, contentDescription = "上へ")
+                                Box {
+                                    IconButton(onClick = { menuExpanded = true }) {
+                                        Icon(Icons.Filled.MoreVert, contentDescription = "メニュー")
                                     }
-                                    IconButton(
-                                        onClick = { viewModel.moveDown(index) },
-                                        enabled = index < items.lastIndex,
+                                    DropdownMenu(
+                                        expanded = menuExpanded,
+                                        onDismissRequest = { menuExpanded = false },
                                     ) {
-                                        Icon(Icons.Filled.KeyboardArrowDown, contentDescription = "下へ")
-                                    }
-                                    IconButton(onClick = { removeTarget = item }) {
-                                        Icon(Icons.Filled.Delete, contentDescription = "削除")
+                                        DropdownMenuItem(
+                                            text = { Text("上へ") },
+                                            enabled = index > 0,
+                                            onClick = {
+                                                menuExpanded = false
+                                                viewModel.moveUp(index)
+                                            },
+                                            leadingIcon = {
+                                                Icon(Icons.Filled.KeyboardArrowUp, contentDescription = null)
+                                            },
+                                        )
+                                        DropdownMenuItem(
+                                            text = { Text("下へ") },
+                                            enabled = index < items.lastIndex,
+                                            onClick = {
+                                                menuExpanded = false
+                                                viewModel.moveDown(index)
+                                            },
+                                            leadingIcon = {
+                                                Icon(Icons.Filled.KeyboardArrowDown, contentDescription = null)
+                                            },
+                                        )
+                                        DropdownMenuItem(
+                                            text = { Text("削除") },
+                                            onClick = {
+                                                menuExpanded = false
+                                                removeTarget = item
+                                            },
+                                            leadingIcon = {
+                                                Icon(Icons.Filled.Delete, contentDescription = null)
+                                            },
+                                        )
                                     }
                                 }
                             },

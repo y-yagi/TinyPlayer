@@ -47,6 +47,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import io.github.yyagi.tinyplayer.data.db.M3uImportResult
 import io.github.yyagi.tinyplayer.data.db.PlaylistEntity
@@ -118,7 +119,7 @@ fun PlaylistsScreen(
         } else {
             LazyColumn(
                 modifier = Modifier.fillMaxSize().padding(innerPadding),
-                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
+                contentPadding = PaddingValues(horizontal = 8.dp, vertical = 8.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 items(playlists, key = { it.playlistId }) { playlist ->
@@ -129,11 +130,18 @@ fun PlaylistsScreen(
                         modifier = Modifier.fillMaxWidth().clickable { onPlaylistClick(playlist) },
                     ) {
                         ListItem(
-                            headlineContent = { Text(playlist.name) },
+                            headlineContent = {
+                                Text(
+                                    playlist.name,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                )
+                            },
                             leadingContent = {
                                 Box(
                                     modifier = Modifier
-                                        .size(56.dp)
+                                        .size(48.dp)
                                         .clip(CircleShape)
                                         .background(MaterialTheme.colorScheme.primaryContainer),
                                     contentAlignment = Alignment.Center,

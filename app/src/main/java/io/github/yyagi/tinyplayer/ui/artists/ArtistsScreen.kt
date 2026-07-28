@@ -26,6 +26,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import io.github.yyagi.tinyplayer.ui.components.AlbumArtThumbnail
 import io.github.yyagi.tinyplayer.ui.library.LibraryViewModel
@@ -64,7 +65,7 @@ fun ArtistsScreen(
         } else {
             LazyColumn(
                 modifier = Modifier.fillMaxSize().padding(innerPadding),
-                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
+                contentPadding = PaddingValues(horizontal = 8.dp, vertical = 8.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 items(artistGroups.entries.toList(), key = { it.key }) { (artist, artistSongs) ->
@@ -74,12 +75,26 @@ fun ArtistsScreen(
                         modifier = Modifier.clickable { onArtistClick(artist) },
                     ) {
                         ListItem(
-                            headlineContent = { Text(artist) },
-                            supportingContent = { Text("${artistSongs.size} 曲") },
+                            headlineContent = {
+                                Text(
+                                    artist,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                )
+                            },
+                            supportingContent = {
+                                Text(
+                                    "${artistSongs.size} 曲",
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                    style = MaterialTheme.typography.bodySmall,
+                                )
+                            },
                             leadingContent = {
                                 AlbumArtThumbnail(
                                     uri = artistSongs.first().albumArtUri,
-                                    size = 56.dp,
+                                    size = 48.dp,
                                     shape = MaterialTheme.shapes.small,
                                 )
                             },

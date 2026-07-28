@@ -28,6 +28,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import io.github.yyagi.tinyplayer.data.db.PlaylistEntity
 import io.github.yyagi.tinyplayer.data.song.Song
@@ -61,9 +62,23 @@ fun SongListItem(
         modifier = Modifier.clickable(onClick = onClick),
     ) {
         ListItem(
-            headlineContent = { Text(song.title) },
-            supportingContent = { Text(subtitle) },
-            leadingContent = { AlbumArtThumbnail(uri = song.albumArtUri, size = 56.dp, shape = MaterialTheme.shapes.small) },
+            headlineContent = {
+                Text(
+                    song.title,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+            },
+            supportingContent = {
+                Text(
+                    subtitle,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    style = MaterialTheme.typography.bodySmall,
+                )
+            },
+            leadingContent = { AlbumArtThumbnail(uri = song.albumArtUri, size = 48.dp, shape = MaterialTheme.shapes.small) },
             trailingContent = {
                 Box {
                     IconButton(onClick = { menuExpanded = true }) {

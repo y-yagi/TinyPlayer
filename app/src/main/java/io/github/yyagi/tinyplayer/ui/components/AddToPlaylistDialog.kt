@@ -22,6 +22,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import io.github.yyagi.tinyplayer.data.db.PlaylistEntity
@@ -45,7 +46,9 @@ fun AddToPlaylistDialog(
                     LazyColumn(modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)) {
                         items(playlists, key = { it.playlistId }) { playlist ->
                             ListItem(
-                                headlineContent = { Text(playlist.name) },
+                                headlineContent = {
+                                    Text(playlist.name, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                },
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .clickable {
