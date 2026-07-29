@@ -12,6 +12,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.ListItem
+import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
@@ -22,6 +23,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
@@ -38,7 +40,10 @@ fun AddToPlaylistDialog(
     var newPlaylistName by remember { mutableStateOf("") }
 
     Dialog(onDismissRequest = onDismiss) {
-        Surface(modifier = Modifier.padding(8.dp)) {
+        Surface(
+            modifier = Modifier.padding(8.dp),
+            color = MaterialTheme.colorScheme.surfaceContainerHigh,
+        ) {
             Column(modifier = Modifier.padding(16.dp)) {
                 Text("プレイリストに追加", style = MaterialTheme.typography.titleMedium)
 
@@ -55,6 +60,7 @@ fun AddToPlaylistDialog(
                                         onSelect(playlist)
                                         onDismiss()
                                     },
+                                colors = ListItemDefaults.colors(containerColor = Color.Transparent),
                             )
                         }
                     }

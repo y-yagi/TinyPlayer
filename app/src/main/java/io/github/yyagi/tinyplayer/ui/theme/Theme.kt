@@ -2,6 +2,7 @@ package io.github.yyagi.tinyplayer.ui.theme
 
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.dynamicDarkColorScheme
@@ -31,6 +32,13 @@ private val DarkColorScheme = darkColorScheme(
     onBackground = OnSurfaceDark,
     surface = SurfaceDark,
     onSurface = OnSurfaceDark,
+    surfaceDim = SurfaceDimDark,
+    surfaceBright = SurfaceBrightDark,
+    surfaceContainerLowest = SurfaceContainerLowestDark,
+    surfaceContainerLow = SurfaceContainerLowDark,
+    surfaceContainer = SurfaceContainerDark,
+    surfaceContainerHigh = SurfaceContainerHighDark,
+    surfaceContainerHighest = SurfaceContainerHighestDark,
     surfaceVariant = SurfaceVariantDark,
     onSurfaceVariant = OnSurfaceVariantDark,
     outline = OutlineDark,
@@ -63,6 +71,13 @@ private val LightColorScheme = lightColorScheme(
     onBackground = OnSurfaceLight,
     surface = SurfaceLight,
     onSurface = OnSurfaceLight,
+    surfaceDim = SurfaceDimLight,
+    surfaceBright = SurfaceBrightLight,
+    surfaceContainerLowest = SurfaceContainerLowestLight,
+    surfaceContainerLow = SurfaceContainerLowLight,
+    surfaceContainer = SurfaceContainerLight,
+    surfaceContainerHigh = SurfaceContainerHighLight,
+    surfaceContainerHighest = SurfaceContainerHighestLight,
     surfaceVariant = SurfaceVariantLight,
     onSurfaceVariant = OnSurfaceVariantLight,
     outline = OutlineLight,
@@ -73,6 +88,54 @@ private val LightColorScheme = lightColorScheme(
     surfaceTint = Blue40,
     scrim = ScrimColor,
 )
+
+/**
+ * 動的カラー(Material You)のアクセント色は活かしつつ、背景・サーフェス階調だけを
+ * アプリ固有のニュートラルで上書きする。壁紙に関係なく背景を純黒に保つための処理。
+ */
+private fun ColorScheme.withAppNeutrals(darkTheme: Boolean): ColorScheme = if (darkTheme) {
+    copy(
+        background = BackgroundDark,
+        onBackground = OnSurfaceDark,
+        surface = SurfaceDark,
+        onSurface = OnSurfaceDark,
+        surfaceDim = SurfaceDimDark,
+        surfaceBright = SurfaceBrightDark,
+        surfaceContainerLowest = SurfaceContainerLowestDark,
+        surfaceContainerLow = SurfaceContainerLowDark,
+        surfaceContainer = SurfaceContainerDark,
+        surfaceContainerHigh = SurfaceContainerHighDark,
+        surfaceContainerHighest = SurfaceContainerHighestDark,
+        surfaceVariant = SurfaceVariantDark,
+        onSurfaceVariant = OnSurfaceVariantDark,
+        outline = OutlineDark,
+        outlineVariant = OutlineVariantDark,
+        inverseSurface = InverseSurfaceDark,
+        inverseOnSurface = InverseOnSurfaceDark,
+        scrim = ScrimColor,
+    )
+} else {
+    copy(
+        background = BackgroundLight,
+        onBackground = OnSurfaceLight,
+        surface = SurfaceLight,
+        onSurface = OnSurfaceLight,
+        surfaceDim = SurfaceDimLight,
+        surfaceBright = SurfaceBrightLight,
+        surfaceContainerLowest = SurfaceContainerLowestLight,
+        surfaceContainerLow = SurfaceContainerLowLight,
+        surfaceContainer = SurfaceContainerLight,
+        surfaceContainerHigh = SurfaceContainerHighLight,
+        surfaceContainerHighest = SurfaceContainerHighestLight,
+        surfaceVariant = SurfaceVariantLight,
+        onSurfaceVariant = OnSurfaceVariantLight,
+        outline = OutlineLight,
+        outlineVariant = OutlineVariantLight,
+        inverseSurface = InverseSurfaceLight,
+        inverseOnSurface = InverseOnSurfaceLight,
+        scrim = ScrimColor,
+    )
+}
 
 @Composable
 fun TinyPlayerTheme(
@@ -87,7 +150,7 @@ fun TinyPlayerTheme(
         }
         darkTheme -> DarkColorScheme
         else -> LightColorScheme
-    }
+    }.withAppNeutrals(darkTheme)
 
     MaterialTheme(
         colorScheme = colorScheme,
