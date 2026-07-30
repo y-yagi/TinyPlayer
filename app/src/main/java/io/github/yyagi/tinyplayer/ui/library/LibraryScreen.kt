@@ -1,6 +1,5 @@
 package io.github.yyagi.tinyplayer.ui.library
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -68,8 +67,7 @@ fun LibraryScreen(
             } else {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize().padding(innerPadding),
-                    contentPadding = PaddingValues(horizontal = 8.dp, vertical = 8.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    contentPadding = PaddingValues(vertical = 8.dp),
                 ) {
                     itemsIndexed(songs, key = { _, song -> song.id }) { index, song ->
                         SongListItem(

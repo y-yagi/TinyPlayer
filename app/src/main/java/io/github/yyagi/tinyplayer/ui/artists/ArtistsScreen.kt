@@ -1,11 +1,11 @@
 package io.github.yyagi.tinyplayer.ui.artists
 
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -18,7 +18,6 @@ import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -26,6 +25,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import io.github.yyagi.tinyplayer.ui.components.AlbumArtThumbnail
@@ -65,42 +65,36 @@ fun ArtistsScreen(
         } else {
             LazyColumn(
                 modifier = Modifier.fillMaxSize().padding(innerPadding),
-                contentPadding = PaddingValues(horizontal = 8.dp, vertical = 8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
+                contentPadding = PaddingValues(vertical = 8.dp),
             ) {
                 items(artistGroups.entries.toList(), key = { it.key }) { (artist, artistSongs) ->
-                    Surface(
-                        shape = MaterialTheme.shapes.small,
-                        color = MaterialTheme.colorScheme.surfaceContainerLow,
-                        modifier = Modifier.clickable { onArtistClick(artist) },
-                    ) {
-                        ListItem(
-                            headlineContent = {
-                                Text(
-                                    artist,
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis,
-                                    style = MaterialTheme.typography.bodyMedium,
-                                )
-                            },
-                            supportingContent = {
-                                Text(
-                                    "${artistSongs.size} 曲",
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis,
-                                    style = MaterialTheme.typography.bodySmall,
-                                )
-                            },
-                            leadingContent = {
-                                AlbumArtThumbnail(
-                                    uri = artistSongs.first().albumArtUri,
-                                    size = 48.dp,
-                                    shape = MaterialTheme.shapes.small,
-                                )
-                            },
-                            colors = ListItemDefaults.colors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
-                        )
-                    }
+                    ListItem(
+                        headlineContent = {
+                            Text(
+                                artist,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                style = MaterialTheme.typography.bodyMedium,
+                            )
+                        },
+                        supportingContent = {
+                            Text(
+                                "${artistSongs.size} 曲",
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                style = MaterialTheme.typography.bodySmall,
+                            )
+                        },
+                        leadingContent = {
+                            AlbumArtThumbnail(
+                                uri = artistSongs.first().albumArtUri,
+                                size = 48.dp,
+                                shape = MaterialTheme.shapes.small,
+                            )
+                        },
+                        colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                        modifier = Modifier.fillMaxWidth().clickable { onArtistClick(artist) },
+                    )
                 }
             }
         }

@@ -5,7 +5,6 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -33,7 +32,6 @@ import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -46,6 +44,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -119,69 +118,63 @@ fun PlaylistsScreen(
         } else {
             LazyColumn(
                 modifier = Modifier.fillMaxSize().padding(innerPadding),
-                contentPadding = PaddingValues(horizontal = 8.dp, vertical = 8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
+                contentPadding = PaddingValues(vertical = 8.dp),
             ) {
                 items(playlists, key = { it.playlistId }) { playlist ->
                     var menuExpanded by remember { mutableStateOf(false) }
-                    Surface(
-                        shape = MaterialTheme.shapes.small,
-                        color = MaterialTheme.colorScheme.surfaceContainerLow,
-                        modifier = Modifier.fillMaxWidth().clickable { onPlaylistClick(playlist) },
-                    ) {
-                        ListItem(
-                            headlineContent = {
-                                Text(
-                                    playlist.name,
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis,
-                                    style = MaterialTheme.typography.bodyMedium,
+                    ListItem(
+                        headlineContent = {
+                            Text(
+                                playlist.name,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                style = MaterialTheme.typography.bodyMedium,
+                            )
+                        },
+                        leadingContent = {
+                            Box(
+                                modifier = Modifier
+                                    .size(48.dp)
+                                    .clip(CircleShape)
+                                    .background(MaterialTheme.colorScheme.primaryContainer),
+                                contentAlignment = Alignment.Center,
+                            ) {
+                                Icon(
+                                    Icons.Filled.QueueMusic,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
                                 )
-                            },
-                            leadingContent = {
-                                Box(
-                                    modifier = Modifier
-                                        .size(48.dp)
-                                        .clip(CircleShape)
-                                        .background(MaterialTheme.colorScheme.primaryContainer),
-                                    contentAlignment = Alignment.Center,
+                            }
+                        },
+                        trailingContent = {
+                            Box {
+                                IconButton(onClick = { menuExpanded = true }) {
+                                    Icon(Icons.Filled.MoreVert, contentDescription = "メニュー")
+                                }
+                                DropdownMenu(
+                                    expanded = menuExpanded,
+                                    onDismissRequest = { menuExpanded = false },
                                 ) {
-                                    Icon(
-                                        Icons.Filled.QueueMusic,
-                                        contentDescription = null,
-                                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                                    DropdownMenuItem(
+                                        text = { Text("名前を変更") },
+                                        onClick = {
+                                            menuExpanded = false
+                                            renameTarget = playlist
+                                        },
+                                    )
+                                    DropdownMenuItem(
+                                        text = { Text("削除") },
+                                        onClick = {
+                                            menuExpanded = false
+                                            deleteTarget = playlist
+                                        },
                                     )
                                 }
-                            },
-                            trailingContent = {
-                                Box {
-                                    IconButton(onClick = { menuExpanded = true }) {
-                                        Icon(Icons.Filled.MoreVert, contentDescription = "メニュー")
-                                    }
-                                    DropdownMenu(
-                                        expanded = menuExpanded,
-                                        onDismissRequest = { menuExpanded = false },
-                                    ) {
-                                        DropdownMenuItem(
-                                            text = { Text("名前を変更") },
-                                            onClick = {
-                                                menuExpanded = false
-                                                renameTarget = playlist
-                                            },
-                                        )
-                                        DropdownMenuItem(
-                                            text = { Text("削除") },
-                                            onClick = {
-                                                menuExpanded = false
-                                                deleteTarget = playlist
-                                            },
-                                        )
-                                    }
-                                }
-                            },
-                            colors = ListItemDefaults.colors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
-                        )
-                    }
+                            }
+                        },
+                        colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                        modifier = Modifier.fillMaxWidth().clickable { onPlaylistClick(playlist) },
+                    )
                 }
             }
         }
