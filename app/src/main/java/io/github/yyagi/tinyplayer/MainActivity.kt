@@ -69,7 +69,7 @@ class MainActivity : ComponentActivity() {
                             container = container,
                             modifier = Modifier.weight(1f),
                         )
-                        if (showBottomChrome && playbackState.title.isNotEmpty()) {
+                        if (currentRoute != Destinations.NOW_PLAYING && playbackState.title.isNotEmpty()) {
                             MiniPlayerBar(
                                 state = playbackState,
                                 onClick = { navController.navigate(Destinations.NOW_PLAYING) },
