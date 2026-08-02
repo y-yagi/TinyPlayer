@@ -18,6 +18,7 @@ class PlaybackService : MediaSessionService() {
             .setAdtsExtractorFlags(AdtsExtractor.FLAG_ENABLE_CONSTANT_BITRATE_SEEKING)
         player = ExoPlayer.Builder(this)
             .setMediaSourceFactory(DefaultMediaSourceFactory(this, extractorsFactory))
+            .setHandleAudioBecomingNoisy(true)
             .build()
             .apply {
                 repeatMode = Player.REPEAT_MODE_OFF
