@@ -29,6 +29,7 @@ import androidx.compose.ui.unit.dp
 import io.github.yyagi.tinyplayer.data.song.Song
 import io.github.yyagi.tinyplayer.ui.components.SongListItem
 import io.github.yyagi.tinyplayer.ui.library.LibraryViewModel
+import io.github.yyagi.tinyplayer.ui.util.rememberScrollClickGuard
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -75,6 +76,7 @@ fun ArtistDetailScreen(
                 }
             }
         } else {
+            val allowClick = rememberScrollClickGuard(listState)
             LazyColumn(
                 state = listState,
                 modifier = Modifier.fillMaxSize().padding(innerPadding),
@@ -85,7 +87,7 @@ fun ArtistDetailScreen(
                         song = song,
                         subtitle = song.album,
                         playlists = playlists,
-                        onClick = { onSongClick(artistSongs, index) },
+                        onClick = { if (allowClick()) onSongClick(artistSongs, index) },
                         onAddToPlaylist = { playlist -> viewModel.addSongToPlaylist(song.id, playlist) },
                         onCreatePlaylist = { name -> viewModel.createPlaylistAndAddSong(name, song.id) },
                         onDeleted = { viewModel.onSongDeleted(song.id) },

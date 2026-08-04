@@ -46,6 +46,7 @@ import androidx.compose.ui.unit.dp
 import io.github.yyagi.tinyplayer.data.db.PlaylistItem
 import io.github.yyagi.tinyplayer.data.song.Song
 import io.github.yyagi.tinyplayer.ui.components.AlbumArtThumbnail
+import io.github.yyagi.tinyplayer.ui.util.rememberScrollClickGuard
 import io.github.yyagi.tinyplayer.ui.util.subtitleWithDuration
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -93,6 +94,7 @@ fun PlaylistDetailScreen(
             }
         } else {
             val songs = items.map { it.song }
+            val allowClick = rememberScrollClickGuard(listState)
             LazyColumn(
                 state = listState,
                 modifier = Modifier.fillMaxSize().padding(innerPadding),
@@ -169,7 +171,9 @@ fun PlaylistDetailScreen(
                             }
                         },
                         colors = ListItemDefaults.colors(containerColor = Color.Transparent),
-                        modifier = Modifier.fillMaxWidth().clickable { onSongClick(songs, index) },
+                        modifier = Modifier.fillMaxWidth().clickable {
+                            if (allowClick()) onSongClick(songs, index)
+                        },
                     )
                 }
             }
