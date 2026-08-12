@@ -56,6 +56,7 @@ fun PlaylistDetailScreen(
     viewModel: PlaylistDetailViewModel,
     onSongClick: (List<Song>, Int) -> Unit = { _, _ -> },
     onBack: () -> Unit = {},
+    currentSongId: Long? = null,
 ) {
     val items by viewModel.items.collectAsState()
     var removeTarget by remember { mutableStateOf<PlaylistItem?>(null) }
@@ -170,7 +171,13 @@ fun PlaylistDetailScreen(
                                 }
                             }
                         },
-                        colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                        colors = ListItemDefaults.colors(
+                            containerColor = if (item.song.id == currentSongId) {
+                                MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.4f)
+                            } else {
+                                Color.Transparent
+                            },
+                        ),
                         modifier = Modifier.fillMaxWidth().clickable {
                             if (allowClick()) onSongClick(songs, index)
                         },

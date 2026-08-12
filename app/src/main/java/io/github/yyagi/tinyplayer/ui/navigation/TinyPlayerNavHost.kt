@@ -29,6 +29,7 @@ fun TinyPlayerNavHost(
     navController: NavHostController,
     container: AppContainer,
     modifier: Modifier = Modifier,
+    currentSongId: Long? = null,
 ) {
     val context = LocalContext.current
 
@@ -40,6 +41,7 @@ fun TinyPlayerNavHost(
             LibraryScreen(
                 viewModel = viewModel,
                 onSongClick = { songs, index -> onSongClick(container, navController, songs, index) },
+                currentSongId = currentSongId,
             )
         }
 
@@ -68,6 +70,7 @@ fun TinyPlayerNavHost(
                 viewModel = viewModel,
                 onSongClick = { songs, index -> onSongClick(container, navController, songs, index) },
                 onBack = { navController.popBackStack() },
+                currentSongId = currentSongId,
             )
         }
 
@@ -101,6 +104,7 @@ fun TinyPlayerNavHost(
                 viewModel = viewModel,
                 onSongClick = { songs, index -> onSongClick(container, navController, songs, index) },
                 onBack = { navController.popBackStack() },
+                currentSongId = currentSongId,
             )
         }
 

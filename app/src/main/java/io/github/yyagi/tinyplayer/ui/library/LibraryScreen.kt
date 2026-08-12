@@ -35,6 +35,7 @@ import io.github.yyagi.tinyplayer.ui.util.rememberScrollClickGuard
 fun LibraryScreen(
     viewModel: LibraryViewModel,
     onSongClick: (List<Song>, Int) -> Unit = { _, _ -> },
+    currentSongId: Long? = null,
 ) {
     val songs by viewModel.songs.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
@@ -83,6 +84,7 @@ fun LibraryScreen(
                             onAddToPlaylist = { playlist -> viewModel.addSongToPlaylist(song.id, playlist) },
                             onCreatePlaylist = { name -> viewModel.createPlaylistAndAddSong(name, song.id) },
                             onDeleted = { viewModel.onSongDeleted(song.id) },
+                            isCurrentlyPlaying = song.id == currentSongId,
                         )
                     }
                 }

@@ -68,6 +68,7 @@ class MainActivity : ComponentActivity() {
                             navController = navController,
                             container = container,
                             modifier = Modifier.weight(1f),
+                            currentSongId = playbackState.currentSongId,
                         )
                         if (currentRoute != Destinations.NOW_PLAYING && playbackState.title.isNotEmpty()) {
                             MiniPlayerBar(

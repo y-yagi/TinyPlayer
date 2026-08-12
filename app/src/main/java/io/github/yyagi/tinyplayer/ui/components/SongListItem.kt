@@ -44,6 +44,7 @@ fun SongListItem(
     onCreatePlaylist: (name: String) -> Unit,
     onDeleted: () -> Unit,
     subtitle: String = song.artist,
+    isCurrentlyPlaying: Boolean = false,
 ) {
     var menuExpanded by remember { mutableStateOf(false) }
     var showAddToPlaylistDialog by remember { mutableStateOf(false) }
@@ -105,7 +106,13 @@ fun SongListItem(
                 }
             }
         },
-        colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+        colors = ListItemDefaults.colors(
+            containerColor = if (isCurrentlyPlaying) {
+                MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.4f)
+            } else {
+                Color.Transparent
+            },
+        ),
         modifier = Modifier.fillMaxWidth().clickable(onClick = onClick),
     )
 

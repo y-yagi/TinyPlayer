@@ -38,6 +38,7 @@ fun ArtistDetailScreen(
     viewModel: LibraryViewModel,
     onSongClick: (List<Song>, Int) -> Unit = { _, _ -> },
     onBack: () -> Unit = {},
+    currentSongId: Long? = null,
 ) {
     val songs by viewModel.songs.collectAsState()
     val playlists by viewModel.playlists.collectAsState()
@@ -91,6 +92,7 @@ fun ArtistDetailScreen(
                         onAddToPlaylist = { playlist -> viewModel.addSongToPlaylist(song.id, playlist) },
                         onCreatePlaylist = { name -> viewModel.createPlaylistAndAddSong(name, song.id) },
                         onDeleted = { viewModel.onSongDeleted(song.id) },
+                        isCurrentlyPlaying = song.id == currentSongId,
                     )
                 }
             }
