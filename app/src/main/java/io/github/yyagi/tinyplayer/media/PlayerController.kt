@@ -51,12 +51,13 @@ class PlayerController(
     private var controller: MediaController? = null
     private var sleepTimerJob: Job? = null
 
-    private val lastPositions = object : LinkedHashMap<Long, Long>(MAX_REMEMBERED_POSITIONS, 0.75f, false) {
+    private val lastPositions = object : LinkedHashMap<Long, Long>(MAX_REMEMBERED_POSITIONS, 0.75f, true) {
         override fun removeEldestEntry(eldest: MutableMap.MutableEntry<Long, Long>) =
             size > MAX_REMEMBERED_POSITIONS
     }
 
     init {
+        lastPositions.putAll(playbackStateStore.loadRecentPositions())
         scope.launch {
             val token = SessionToken(context, ComponentName(context, PlaybackService::class.java))
             val mediaController = MediaController.Builder(context, token).buildAsync().await()
@@ -149,6 +150,7 @@ class PlayerController(
         val controller = controller ?: return
         _uiState.value.currentSongId?.let { previousId ->
             lastPositions[previousId] = controller.currentPosition
+            playbackStateStore.saveRecentPositions(lastPositions)
         }
         val targetSongId = songs.getOrNull(startIndex)?.id
         val resumePositionMs = targetSongId?.let { lastPositions[it] } ?: 0L
