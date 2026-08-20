@@ -4,6 +4,7 @@ import io.github.yyagi.tinyplayer.data.song.Song
 import io.github.yyagi.tinyplayer.data.song.SongRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 
 data class PlaylistItem(
     val crossRefId: Long,
@@ -42,6 +43,19 @@ class PlaylistRepository(
             }
         }
         return M3uImportResult(playlistId, matched, entries.size)
+    }
+
+    suspend fun exportM3u(playlistId: Long): String {
+        val crossRefs = playlistDao.observeCrossRefs(playlistId).first()
+        val songsById = songRepository.songs.value.associateBy { it.id }
+        val songs = crossRefs.sortedBy { it.position }.mapNotNull { songsById[it.songId] }
+        return buildString {
+            appendLine("#EXTM3U")
+            songs.forEach { song ->
+                appendLine("#EXTINF:${song.durationMs / 1000},${song.artist} - ${song.title}")
+                appendLine(song.fileName)
+            }
+        }
     }
 
     suspend fun renamePlaylist(playlist: PlaylistEntity, newName: String) {

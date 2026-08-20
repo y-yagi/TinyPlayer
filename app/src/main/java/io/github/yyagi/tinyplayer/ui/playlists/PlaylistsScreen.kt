@@ -64,6 +64,8 @@ fun PlaylistsScreen(
     var renameTarget by remember { mutableStateOf<PlaylistEntity?>(null) }
     var deleteTarget by remember { mutableStateOf<PlaylistEntity?>(null) }
     var importResult by remember { mutableStateOf<M3uImportResult?>(null) }
+    var exportDone by remember { mutableStateOf(false) }
+    var pendingExportContent by remember { mutableStateOf<String?>(null) }
     val context = LocalContext.current
     val listState = rememberSaveable(saver = LazyListState.Saver) { LazyListState() }
 
@@ -80,6 +82,17 @@ fun PlaylistsScreen(
                 viewModel.importM3u(name, content) { result -> importResult = result }
             }
         }
+    }
+
+    val exportLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.CreateDocument("audio/x-mpegurl"),
+    ) { uri ->
+        val content = pendingExportContent
+        if (uri != null && content != null) {
+            context.contentResolver.openOutputStream(uri)?.use { it.write(content.toByteArray()) }
+            exportDone = true
+        }
+        pendingExportContent = null
     }
 
     Scaffold(
@@ -167,6 +180,16 @@ fun PlaylistsScreen(
                                         },
                                     )
                                     DropdownMenuItem(
+                                        text = { Text("エクスポート") },
+                                        onClick = {
+                                            menuExpanded = false
+                                            viewModel.exportPlaylist(playlist.playlistId) { content ->
+                                                pendingExportContent = content
+                                                exportLauncher.launch("${playlist.name}.m3u")
+                                            }
+                                        },
+                                    )
+                                    DropdownMenuItem(
                                         text = { Text("削除") },
                                         onClick = {
                                             menuExpanded = false
@@ -232,6 +255,17 @@ fun PlaylistsScreen(
             text = { Text("${result.matchedCount} / ${result.totalCount} 曲を追加しました") },
             confirmButton = {
                 TextButton(onClick = { importResult = null }) { Text("OK") }
+            },
+        )
+    }
+
+    if (exportDone) {
+        AlertDialog(
+            onDismissRequest = { exportDone = false },
+            title = { Text("エクスポート完了") },
+            text = { Text("プレイリストをM3Uファイルとして保存しました") },
+            confirmButton = {
+                TextButton(onClick = { exportDone = false }) { Text("OK") }
             },
         )
     }

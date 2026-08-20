@@ -33,6 +33,10 @@ class PlaylistsViewModel(
         viewModelScope.launch { onResult(playlistRepository.importM3u(name, content)) }
     }
 
+    fun exportPlaylist(playlistId: Long, onResult: (String) -> Unit) {
+        viewModelScope.launch { onResult(playlistRepository.exportM3u(playlistId)) }
+    }
+
     companion object {
         fun factory(playlistRepository: PlaylistRepository) =
             object : ViewModelProvider.Factory {
