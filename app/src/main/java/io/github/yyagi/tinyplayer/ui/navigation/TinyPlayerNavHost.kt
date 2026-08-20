@@ -13,6 +13,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import io.github.yyagi.tinyplayer.data.AppContainer
 import io.github.yyagi.tinyplayer.data.song.Song
+import io.github.yyagi.tinyplayer.ui.albums.AlbumDetailScreen
+import io.github.yyagi.tinyplayer.ui.albums.AlbumsScreen
 import io.github.yyagi.tinyplayer.ui.artists.ArtistDetailScreen
 import io.github.yyagi.tinyplayer.ui.artists.ArtistsScreen
 import io.github.yyagi.tinyplayer.ui.library.LibraryScreen
@@ -67,6 +69,35 @@ fun TinyPlayerNavHost(
             )
             ArtistDetailScreen(
                 artist = artist,
+                viewModel = viewModel,
+                onSongClick = { songs, index -> onSongClick(container, navController, songs, index) },
+                onBack = { navController.popBackStack() },
+                currentSongId = currentSongId,
+            )
+        }
+
+        composable(Destinations.ALBUMS) {
+            val viewModel: LibraryViewModel = viewModel(
+                factory = LibraryViewModel.factory(context, container.songRepository, container.playlistRepository),
+            )
+            AlbumsScreen(
+                viewModel = viewModel,
+                onAlbumClick = { album ->
+                    navController.navigate(Destinations.albumDetail(album))
+                },
+            )
+        }
+
+        composable(
+            route = Destinations.ALBUM_DETAIL,
+            arguments = listOf(navArgument("album") { type = NavType.StringType }),
+        ) { backStackEntry ->
+            val album = backStackEntry.arguments?.getString("album").orEmpty()
+            val viewModel: LibraryViewModel = viewModel(
+                factory = LibraryViewModel.factory(context, container.songRepository, container.playlistRepository),
+            )
+            AlbumDetailScreen(
+                album = album,
                 viewModel = viewModel,
                 onSongClick = { songs, index -> onSongClick(container, navController, songs, index) },
                 onBack = { navController.popBackStack() },

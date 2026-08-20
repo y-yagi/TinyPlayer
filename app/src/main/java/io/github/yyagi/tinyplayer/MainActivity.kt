@@ -6,6 +6,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.Column
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Album
 import androidx.compose.material.icons.filled.LibraryMusic
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.QueueMusic
@@ -35,8 +36,9 @@ class MainActivity : ComponentActivity() {
                 val backStackEntry by navController.currentBackStackEntryAsState()
                 val currentRoute = backStackEntry?.destination?.route
                 val showBottomChrome = currentRoute == Destinations.LIBRARY ||
+                    currentRoute == Destinations.PLAYLISTS ||
                     currentRoute == Destinations.ARTISTS ||
-                    currentRoute == Destinations.PLAYLISTS
+                    currentRoute == Destinations.ALBUMS
                 val playbackState by container.playerController.uiState.collectAsState()
 
                 NavigationSuiteScaffold(
@@ -49,16 +51,22 @@ class MainActivity : ComponentActivity() {
                                 label = { Text("ライブラリ") },
                             )
                             item(
+                                selected = currentRoute == Destinations.PLAYLISTS,
+                                onClick = { navigateToTab(navController, Destinations.PLAYLISTS) },
+                                icon = { Icon(Icons.Filled.QueueMusic, contentDescription = null) },
+                                label = { Text("プレイリスト") },
+                            )
+                            item(
                                 selected = currentRoute == Destinations.ARTISTS,
                                 onClick = { navigateToTab(navController, Destinations.ARTISTS) },
                                 icon = { Icon(Icons.Filled.Person, contentDescription = null) },
                                 label = { Text("アーティスト") },
                             )
                             item(
-                                selected = currentRoute == Destinations.PLAYLISTS,
-                                onClick = { navigateToTab(navController, Destinations.PLAYLISTS) },
-                                icon = { Icon(Icons.Filled.QueueMusic, contentDescription = null) },
-                                label = { Text("プレイリスト") },
+                                selected = currentRoute == Destinations.ALBUMS,
+                                onClick = { navigateToTab(navController, Destinations.ALBUMS) },
+                                icon = { Icon(Icons.Filled.Album, contentDescription = null) },
+                                label = { Text("アルバム") },
                             )
                         }
                     },
