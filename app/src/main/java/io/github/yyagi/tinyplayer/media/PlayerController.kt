@@ -38,6 +38,7 @@ data class PlaybackUiState(
 private const val MAX_REMEMBERED_POSITIONS = 5
 private const val POSITION_SAVE_INTERVAL_TICKS = 10
 private const val RESTORE_TIMEOUT_MS = 10_000L
+private const val RESUME_REWIND_MS = 3_000L
 
 class PlayerController(
     private val context: Context,
@@ -161,7 +162,14 @@ class PlayerController(
 
     fun togglePlayPause() {
         val controller = controller ?: return
-        if (controller.isPlaying) controller.pause() else controller.play()
+        if (controller.isPlaying) {
+            controller.pause()
+        } else {
+            // Bluetooth output buffering can leave a short gap between the displayed
+            // pause position and what was actually last heard, so rewind slightly on resume.
+            controller.seekTo((controller.currentPosition - RESUME_REWIND_MS).coerceAtLeast(0L))
+            controller.play()
+        }
     }
 
     fun seekToNext() {
