@@ -38,7 +38,7 @@ data class PlaybackUiState(
 private const val MAX_REMEMBERED_POSITIONS = 5
 private const val POSITION_SAVE_INTERVAL_TICKS = 10
 private const val RESTORE_TIMEOUT_MS = 10_000L
-private const val RESUME_REWIND_MS = 3_000L
+private const val RESUME_REWIND_MS = 5_000L
 
 class PlayerController(
     private val context: Context,
