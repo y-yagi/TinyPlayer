@@ -18,7 +18,7 @@ TinyPlayer is a local (offline) music player app. Single Gradle module (`:app`),
 ## Tech Stack
 
 - **Playback**: Media3 (`ExoPlayer` wrapped in a `MediaSessionService`, controlled from the UI via `MediaController`).
-- **Persistence**: Room, used only for playlists. Songs are never persisted — they're queried live from `MediaStore` each time. `SharedPreferences` (via `PlaybackStateStore`) remembers the last-played song/position and up to 5 recent per-song positions across process death.
+- **Persistence**: Room, used only for playlists. Songs are never persisted — they're queried live from `MediaStore` each time. `SharedPreferences` (via `PlaybackStateStore`) remembers the last-played song/position and up to 10 recent per-song positions across process death.
 - **Images**: Coil3 for album art.
 - **Navigation**: `navigation-compose`.
 - **DI**: No Hilt/Koin — a hand-rolled manual DI container (`AppContainer`).
@@ -47,7 +47,7 @@ TinyPlayer is a local (offline) music player app. Single Gradle module (`:app`),
 ## Key Classes
 
 - **`PlaybackService`** (`media/PlaybackService.kt`) — `ExoPlayer` + `MediaSessionService`. Includes a custom extractor config enabling constant-bitrate seeking so duration/seek work for raw ADTS AAC streams; pauses playback when audio output becomes noisy (e.g. headphones unplugged) via `setHandleAudioBecomingNoisy(true)`.
-- **`PlayerController`** (`media/PlayerController.kt`) — wraps a `MediaController`, exposes `PlaybackUiState` as a `StateFlow`. Polls playback position every 500ms; remembers the last playback position of up to 5 recently played songs (persisted via `PlaybackStateStore`) and resumes from there; also owns the sleep timer (`setSleepTimer`/`cancelSleepTimer`).
+- **`PlayerController`** (`media/PlayerController.kt`) — wraps a `MediaController`, exposes `PlaybackUiState` as a `StateFlow`. Polls playback position every 500ms; remembers the last playback position of up to 10 recently played songs (persisted via `PlaybackStateStore`) and resumes from there; also owns the sleep timer (`setSleepTimer`/`cancelSleepTimer`).
 - **`PlaybackStateStore`** (`media/PlaybackStateStore.kt`) — `SharedPreferences` wrapper persisting the last-played song/position and the recent per-song position map, so playback state survives process death.
 - **`SongRepository`** (`data/song/SongRepository.kt`) — queries songs from `MediaStore` on demand; no DB persistence.
 - **`PlaylistRepository`** (`data/db/PlaylistRepository.kt`) — combines Room DAO flows with `SongRepository.songs` to build playlist contents; also implements M3U playlist import and export (matching songs by file name).
