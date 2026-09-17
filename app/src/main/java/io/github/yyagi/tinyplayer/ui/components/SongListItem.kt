@@ -8,8 +8,11 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenu
@@ -33,6 +36,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import io.github.yyagi.tinyplayer.data.db.PlaylistEntity
 import io.github.yyagi.tinyplayer.data.song.Song
+import io.github.yyagi.tinyplayer.ui.util.formatDurationMs
 import io.github.yyagi.tinyplayer.ui.util.subtitleWithDuration
 
 @Composable
@@ -49,6 +53,7 @@ fun SongListItem(
     var menuExpanded by remember { mutableStateOf(false) }
     var showAddToPlaylistDialog by remember { mutableStateOf(false) }
     var showDeleteConfirm by remember { mutableStateOf(false) }
+    var showSongInfoDialog by remember { mutableStateOf(false) }
     val context = LocalContext.current
 
     val deleteLauncher = rememberLauncherForActivityResult(
@@ -94,6 +99,16 @@ fun SongListItem(
                         },
                     )
                     DropdownMenuItem(
+                        text = { Text("曲の情報") },
+                        onClick = {
+                            menuExpanded = false
+                            showSongInfoDialog = true
+                        },
+                        leadingIcon = {
+                            Icon(Icons.Filled.Info, contentDescription = null)
+                        },
+                    )
+                    DropdownMenuItem(
                         text = { Text("削除") },
                         onClick = {
                             menuExpanded = false
@@ -115,6 +130,27 @@ fun SongListItem(
         ),
         modifier = Modifier.fillMaxWidth().clickable(onClick = onClick),
     )
+
+    if (showSongInfoDialog) {
+        AlertDialog(
+            onDismissRequest = { showSongInfoDialog = false },
+            title = { Text("曲の情報") },
+            text = {
+                Column {
+                    SongInfoRow(label = "タイトル", value = song.title)
+                    SongInfoRow(label = "アーティスト", value = song.artist)
+                    SongInfoRow(label = "アルバム", value = song.album)
+                    SongInfoRow(label = "再生時間", value = formatDurationMs(song.durationMs))
+                    SongInfoRow(label = "ファイル名", value = song.fileName)
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { showSongInfoDialog = false }) {
+                    Text("閉じる")
+                }
+            },
+        )
+    }
 
     if (showAddToPlaylistDialog) {
         AddToPlaylistDialog(
@@ -148,5 +184,13 @@ fun SongListItem(
                 }
             },
         )
+    }
+}
+
+@Composable
+private fun SongInfoRow(label: String, value: String) {
+    Column(modifier = Modifier.padding(vertical = 4.dp)) {
+        Text(label, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(value, style = MaterialTheme.typography.bodyMedium)
     }
 }
