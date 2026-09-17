@@ -183,7 +183,9 @@ class PlayerController(
     fun seekTo(positionMs: Long) {
         val controller = controller ?: return
         val duration = controller.duration.takeIf { it != C.TIME_UNSET } ?: return
-        controller.seekTo(positionMs.coerceIn(0L, duration))
+        val target = positionMs.coerceIn(0L, duration)
+        controller.seekTo(target)
+        saveCurrentPosition(target)
     }
 
     fun seekBy(deltaMs: Long) {
@@ -191,6 +193,11 @@ class PlayerController(
         val duration = controller.duration.takeIf { it != C.TIME_UNSET } ?: return
         val target = (controller.currentPosition + deltaMs).coerceIn(0L, duration)
         controller.seekTo(target)
+        saveCurrentPosition(target)
+    }
+
+    private fun saveCurrentPosition(positionMs: Long) {
+        _uiState.value.currentSongId?.let { id -> playbackStateStore.save(id, positionMs) }
     }
 
     fun cycleRepeatMode() {
