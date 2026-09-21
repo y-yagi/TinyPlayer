@@ -11,6 +11,14 @@ After making any code change, always deploy (install) it to a real device or emu
 - Requires a connected Android device or emulator (check with `adb devices`).
 - Always complete this install step before verifying or testing any change.
 
+### On-device verification safety
+
+The connected device has the user's real, in-use data (real playlists, real songs, real playback state) — there is no separate test profile.
+
+- Never perform destructive actions (delete a song, remove a song from a playlist, delete a playlist, clear playback history, etc.) against existing real data while verifying a change.
+- If a feature requires exercising a destructive action to verify (e.g. "show a message when a song is removed from a playlist"), create disposable test data first (a new playlist and/or use a song not relevant to the user), perform the destructive action only on that disposable data, and clean up afterward.
+- If no safe way to verify without touching real data exists, stop and ask the user before proceeding.
+
 ## Overview
 
 TinyPlayer is a local (offline) music player app. Single Gradle module (`:app`), package `io.github.yyagi.tinyplayer`, minSdk 34 / compileSdk & targetSdk 36. 100% Kotlin, UI built entirely with Jetpack Compose (Material 3). Source root: `app/src/main/java/io/github/yyagi/tinyplayer/`.
