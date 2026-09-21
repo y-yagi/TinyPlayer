@@ -28,6 +28,8 @@ import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -36,6 +38,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -48,6 +51,7 @@ import io.github.yyagi.tinyplayer.data.song.Song
 import io.github.yyagi.tinyplayer.ui.components.AlbumArtThumbnail
 import io.github.yyagi.tinyplayer.ui.util.rememberScrollClickGuard
 import io.github.yyagi.tinyplayer.ui.util.subtitleWithDuration
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -61,6 +65,8 @@ fun PlaylistDetailScreen(
     val items by viewModel.items.collectAsState()
     var removeTarget by remember { mutableStateOf<PlaylistItem?>(null) }
     val listState = rememberSaveable(saver = LazyListState.Saver) { LazyListState() }
+    val snackbarHostState = remember { SnackbarHostState() }
+    val coroutineScope = rememberCoroutineScope()
 
     Scaffold(
         topBar = {
@@ -73,6 +79,7 @@ fun PlaylistDetailScreen(
                 },
             )
         },
+        snackbarHost = { SnackbarHost(snackbarHostState) },
     ) { innerPadding ->
         if (items.isEmpty()) {
             Box(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
@@ -194,7 +201,9 @@ fun PlaylistDetailScreen(
             text = { Text("「${target.song.title}」をプレイリストから削除しますか？") },
             confirmButton = {
                 TextButton(onClick = {
-                    viewModel.removeSong(target.song.id)
+                    viewModel.removeSong(target.song.id) {
+                        coroutineScope.launch { snackbarHostState.showSnackbar("「${target.song.title}」を削除しました") }
+                    }
                     removeTarget = null
                 }) {
                     Text("削除")

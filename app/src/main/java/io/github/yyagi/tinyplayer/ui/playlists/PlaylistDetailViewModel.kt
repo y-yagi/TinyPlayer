@@ -18,8 +18,11 @@ class PlaylistDetailViewModel(
     val items: StateFlow<List<PlaylistItem>> = playlistRepository.observePlaylistItems(playlistId)
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    fun removeSong(songId: Long) {
-        viewModelScope.launch { playlistRepository.removeSong(playlistId, songId) }
+    fun removeSong(songId: Long, onRemoved: () -> Unit = {}) {
+        viewModelScope.launch {
+            playlistRepository.removeSong(playlistId, songId)
+            onRemoved()
+        }
     }
 
     fun moveUp(index: Int) = swap(index, index - 1)
