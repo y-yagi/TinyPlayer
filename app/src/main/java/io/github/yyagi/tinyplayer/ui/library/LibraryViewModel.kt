@@ -29,14 +29,18 @@ class LibraryViewModel(
         }
     }
 
-    fun addSongToPlaylist(songId: Long, playlist: PlaylistEntity) {
-        viewModelScope.launch { playlistRepository.addSong(playlist.playlistId, songId) }
+    fun addSongToPlaylist(songId: Long, playlist: PlaylistEntity, onAdded: (String) -> Unit = {}) {
+        viewModelScope.launch {
+            playlistRepository.addSong(playlist.playlistId, songId)
+            onAdded(playlist.name)
+        }
     }
 
-    fun createPlaylistAndAddSong(name: String, songId: Long) {
+    fun createPlaylistAndAddSong(name: String, songId: Long, onAdded: (String) -> Unit = {}) {
         viewModelScope.launch {
             val playlistId = playlistRepository.createPlaylist(name)
             playlistRepository.addSong(playlistId, songId)
+            onAdded(name)
         }
     }
 

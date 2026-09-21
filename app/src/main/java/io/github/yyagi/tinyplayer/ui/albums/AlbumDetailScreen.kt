@@ -17,11 +17,15 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -30,6 +34,7 @@ import io.github.yyagi.tinyplayer.data.song.Song
 import io.github.yyagi.tinyplayer.ui.components.SongListItem
 import io.github.yyagi.tinyplayer.ui.library.LibraryViewModel
 import io.github.yyagi.tinyplayer.ui.util.rememberScrollClickGuard
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -44,6 +49,8 @@ fun AlbumDetailScreen(
     val playlists by viewModel.playlists.collectAsState()
     val albumSongs = songs.filter { it.album == album }
     val listState = rememberSaveable(saver = LazyListState.Saver) { LazyListState() }
+    val snackbarHostState = remember { SnackbarHostState() }
+    val coroutineScope = rememberCoroutineScope()
 
     Scaffold(
         topBar = {
@@ -56,6 +63,7 @@ fun AlbumDetailScreen(
                 },
             )
         },
+        snackbarHost = { SnackbarHost(snackbarHostState) },
     ) { innerPadding ->
         if (albumSongs.isEmpty()) {
             Box(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
@@ -89,8 +97,16 @@ fun AlbumDetailScreen(
                         subtitle = song.artist,
                         playlists = playlists,
                         onClick = { if (allowClick()) onSongClick(albumSongs, index) },
-                        onAddToPlaylist = { playlist -> viewModel.addSongToPlaylist(song.id, playlist) },
-                        onCreatePlaylist = { name -> viewModel.createPlaylistAndAddSong(name, song.id) },
+                        onAddToPlaylist = { playlist ->
+                            viewModel.addSongToPlaylist(song.id, playlist) { playlistName ->
+                                coroutineScope.launch { snackbarHostState.showSnackbar("「$playlistName」に追加しました") }
+                            }
+                        },
+                        onCreatePlaylist = { name ->
+                            viewModel.createPlaylistAndAddSong(name, song.id) { playlistName ->
+                                coroutineScope.launch { snackbarHostState.showSnackbar("「$playlistName」に追加しました") }
+                            }
+                        },
                         onDeleted = { viewModel.onSongDeleted(song.id) },
                         isCurrentlyPlaying = song.id == currentSongId,
                     )
