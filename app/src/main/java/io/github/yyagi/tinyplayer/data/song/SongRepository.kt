@@ -29,7 +29,16 @@ class SongRepository {
         _isLoading.value = false
     }
 
-    private fun queryMediaStore(context: Context): List<Song> {
+    /** Looks up a single song straight from MediaStore, without waiting for the full library scan. */
+    suspend fun querySong(context: Context, id: Long): Song? = withContext(Dispatchers.IO) {
+        try {
+            queryMediaStore(context, id).firstOrNull()
+        } catch (e: SecurityException) {
+            null
+        }
+    }
+
+    private fun queryMediaStore(context: Context, id: Long? = null): List<Song> {
         val projection = arrayOf(
             MediaStore.Audio.Media._ID,
             MediaStore.Audio.Media.TITLE,
@@ -39,7 +48,8 @@ class SongRepository {
             MediaStore.Audio.Media.DURATION,
             MediaStore.Audio.Media.DISPLAY_NAME,
         )
-        val selection = "${MediaStore.Audio.Media.IS_MUSIC} != 0"
+        var selection = "${MediaStore.Audio.Media.IS_MUSIC} != 0"
+        if (id != null) selection += " AND ${MediaStore.Audio.Media._ID} = ?"
         val sortOrder = "${MediaStore.Audio.Media.DATE_MODIFIED} DESC"
         val albumArtBaseUri = Uri.parse("content://media/external/audio/albumart")
 
@@ -48,7 +58,7 @@ class SongRepository {
             MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
             projection,
             selection,
-            null,
+            id?.let { arrayOf(it.toString()) },
             sortOrder,
         )?.use { cursor ->
             val idCol = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media._ID)

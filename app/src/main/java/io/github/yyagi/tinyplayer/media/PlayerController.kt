@@ -11,6 +11,7 @@ import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
 import io.github.yyagi.tinyplayer.data.song.Song
 import io.github.yyagi.tinyplayer.data.song.SongRepository
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -21,7 +22,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.guava.await
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withTimeoutOrNull
 
 data class PlaybackUiState(
     val currentSongId: Long? = null,
@@ -37,7 +37,7 @@ data class PlaybackUiState(
 
 private const val MAX_REMEMBERED_POSITIONS = 10
 private const val POSITION_SAVE_INTERVAL_TICKS = 10
-private const val RESTORE_TIMEOUT_MS = 30_000L
+private const val RECONNECT_DELAY_MS = 1_000L
 private const val RESUME_REWIND_MS = 5_000L
 
 class PlayerController(
@@ -50,6 +50,7 @@ class PlayerController(
     val uiState: StateFlow<PlaybackUiState> = _uiState.asStateFlow()
 
     private var controller: MediaController? = null
+    private var pollingJob: Job? = null
     private var sleepTimerJob: Job? = null
 
     private val lastPositions = object : LinkedHashMap<Long, Long>(MAX_REMEMBERED_POSITIONS, 0.75f, true) {
@@ -59,80 +60,105 @@ class PlayerController(
 
     init {
         lastPositions.putAll(playbackStateStore.loadRecentPositions())
+        connect()
+    }
+
+    private fun connect() {
         scope.launch {
             val token = SessionToken(context, ComponentName(context, PlaybackService::class.java))
-            val mediaController = MediaController.Builder(context, token).buildAsync().await()
+            val mediaController = try {
+                MediaController.Builder(context, token)
+                    .setListener(object : MediaController.Listener {
+                        override fun onDisconnected(controller: MediaController) {
+                            handleDisconnected(controller)
+                        }
+                    })
+                    .buildAsync()
+                    .await()
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                delay(RECONNECT_DELAY_MS)
+                connect()
+                return@launch
+            }
             controller = mediaController
             attachListener(mediaController)
             restoreLastPlayback(mediaController)
         }
     }
 
-    private fun attachListener(controller: MediaController) {
-        controller.addListener(object : Player.Listener {
-            override fun onIsPlayingChanged(isPlaying: Boolean) {
-                _uiState.update { it.copy(isPlaying = isPlaying) }
-                if (!isPlaying) {
-                    _uiState.value.currentSongId?.let { id ->
-                        playbackStateStore.save(id, controller.currentPosition)
-                    }
-                }
-            }
+    /**
+     * A disconnected MediaController reports position 0 and empty metadata, so keeping it around
+     * would overwrite the saved position with 0 and blank out the Now Playing screen. Drop it and
+     * reconnect; the restore step then reloads the saved song if the service lost its queue.
+     */
+    private fun handleDisconnected(disconnected: MediaController) {
+        if (controller !== disconnected) return
+        controller = null
+        pollingJob?.cancel()
+        pollingJob = null
+        disconnected.release()
+        _uiState.update { it.copy(isPlaying = false) }
+        connect()
+    }
 
-            override fun onMediaMetadataChanged(mediaMetadata: MediaMetadata) {
-                _uiState.update {
-                    it.copy(
-                        title = mediaMetadata.title?.toString().orEmpty(),
-                        artist = mediaMetadata.artist?.toString().orEmpty(),
-                        albumArtUri = mediaMetadata.artworkUri,
-                        durationMs = controller.duration.takeIf { d -> d != C.TIME_UNSET } ?: 0L,
-                    )
-                }
-            }
+    private fun currentSongId(controller: MediaController): Long? =
+        controller.currentMediaItem?.mediaId?.toLongOrNull()
 
-            override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
-                _uiState.update {
-                    it.copy(
-                        currentSongId = mediaItem?.mediaId?.toLongOrNull(),
-                        positionMs = controller.currentPosition,
-                    )
-                }
-                mediaItem?.mediaId?.toLongOrNull()?.let { id ->
-                    playbackStateStore.save(id, controller.currentPosition)
-                }
-            }
+    private fun saveCurrentState(controller: MediaController) {
+        if (!controller.isConnected) return
+        currentSongId(controller)?.let { id -> playbackStateStore.save(id, controller.currentPosition) }
+    }
 
-            override fun onRepeatModeChanged(repeatMode: Int) {
-                _uiState.update { it.copy(repeatMode = repeatMode) }
-            }
-        })
+    /** Rebuilds the UI state from the controller's own snapshot so it can never drift from it. */
+    private fun syncState(controller: MediaController) {
+        if (!controller.isConnected) return
+        val songId = currentSongId(controller)
+        val metadata = controller.mediaMetadata
+        val itemMetadata = controller.currentMediaItem?.mediaMetadata
+        val song = songId?.let { songRepository.findById(it) }
         _uiState.update {
             it.copy(
-                currentSongId = controller.currentMediaItem?.mediaId?.toLongOrNull(),
-                title = controller.mediaMetadata.title?.toString().orEmpty(),
-                artist = controller.mediaMetadata.artist?.toString().orEmpty(),
-                albumArtUri = controller.mediaMetadata.artworkUri,
+                currentSongId = songId,
+                title = (metadata.title ?: itemMetadata?.title)?.toString()?.ifEmpty { null }
+                    ?: song?.title.orEmpty(),
+                artist = (metadata.artist ?: itemMetadata?.artist)?.toString()?.ifEmpty { null }
+                    ?: song?.artist.orEmpty(),
+                albumArtUri = metadata.artworkUri ?: itemMetadata?.artworkUri ?: song?.albumArtUri,
                 isPlaying = controller.isPlaying,
                 positionMs = controller.currentPosition,
-                durationMs = controller.duration.takeIf { d -> d != C.TIME_UNSET } ?: 0L,
+                durationMs = controller.duration.takeIf { d -> d != C.TIME_UNSET }
+                    ?: if (songId == it.currentSongId) it.durationMs else 0L,
                 repeatMode = controller.repeatMode,
             )
         }
+    }
 
-        scope.launch {
+    private fun attachListener(controller: MediaController) {
+        controller.addListener(object : Player.Listener {
+            override fun onIsPlayingChanged(isPlaying: Boolean) {
+                if (!isPlaying) saveCurrentState(controller)
+            }
+
+            override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
+                saveCurrentState(controller)
+            }
+
+            override fun onEvents(player: Player, events: Player.Events) {
+                syncState(controller)
+            }
+        })
+        syncState(controller)
+
+        pollingJob?.cancel()
+        pollingJob = scope.launch {
             var tick = 0
             while (true) {
-                _uiState.update {
-                    it.copy(
-                        positionMs = controller.currentPosition,
-                        durationMs = controller.duration.takeIf { d -> d != C.TIME_UNSET } ?: it.durationMs,
-                    )
-                }
+                syncState(controller)
                 tick++
                 if (tick % POSITION_SAVE_INTERVAL_TICKS == 0) {
-                    _uiState.value.currentSongId?.let { id ->
-                        playbackStateStore.save(id, controller.currentPosition)
-                    }
+                    saveCurrentState(controller)
                 }
                 delay(500)
             }
@@ -140,16 +166,23 @@ class PlayerController(
     }
 
     private suspend fun restoreLastPlayback(controller: MediaController) {
+        // After a reconnect the service may still hold the queue; never clobber it.
+        if (controller.currentMediaItem != null) return
         val saved = playbackStateStore.load() ?: return
-        val songs = withTimeoutOrNull(RESTORE_TIMEOUT_MS) { songRepository.songs.first { it.isNotEmpty() } } ?: return
-        val song = songs.firstOrNull { it.id == saved.songId } ?: return
+        val song = songRepository.findById(saved.songId)
+            ?: songRepository.querySong(context, saved.songId)
+            // MediaStore can't be read until the permission is granted; fall back to the library scan.
+            ?: songRepository.songs.first { it.isNotEmpty() }.firstOrNull { it.id == saved.songId }
+            ?: return
+        // The user may have started something else while we were waiting.
+        if (this.controller !== controller || controller.currentMediaItem != null) return
         controller.setMediaItem(song.toMediaItem(), saved.positionMs)
         controller.prepare()
     }
 
     fun playQueue(songs: List<Song>, startIndex: Int) {
         val controller = controller ?: return
-        _uiState.value.currentSongId?.let { previousId ->
+        currentSongId(controller)?.let { previousId ->
             lastPositions[previousId] = controller.currentPosition
             playbackStateStore.saveRecentPositions(lastPositions)
         }
@@ -197,7 +230,7 @@ class PlayerController(
     }
 
     private fun saveCurrentPosition(positionMs: Long) {
-        _uiState.value.currentSongId?.let { id -> playbackStateStore.save(id, positionMs) }
+        controller?.let(::currentSongId)?.let { id -> playbackStateStore.save(id, positionMs) }
     }
 
     fun cycleRepeatMode() {
@@ -210,13 +243,13 @@ class PlayerController(
     }
 
     fun setSleepTimer(durationMs: Long) {
-        val controller = controller ?: return
+        if (controller == null) return
         sleepTimerJob?.cancel()
         val endTime = System.currentTimeMillis() + durationMs
         _uiState.update { it.copy(sleepTimerEndTimeMs = endTime) }
         sleepTimerJob = scope.launch {
             delay(durationMs)
-            controller.pause()
+            controller?.pause()
             _uiState.update { it.copy(sleepTimerEndTimeMs = null) }
         }
     }
