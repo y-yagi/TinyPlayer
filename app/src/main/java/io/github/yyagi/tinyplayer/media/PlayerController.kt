@@ -39,6 +39,7 @@ private const val MAX_REMEMBERED_POSITIONS = 10
 private const val POSITION_SAVE_INTERVAL_TICKS = 10
 private const val RECONNECT_DELAY_MS = 1_000L
 private const val RESUME_REWIND_MS = 5_000L
+private const val RESTORE_TOLERANCE_MS = 3_000L
 
 class PlayerController(
     private val context: Context,
@@ -52,6 +53,7 @@ class PlayerController(
     private var controller: MediaController? = null
     private var pollingJob: Job? = null
     private var sleepTimerJob: Job? = null
+    private var pendingRestore: SavedPlaybackState? = null
 
     private val lastPositions = object : LinkedHashMap<Long, Long>(MAX_REMEMBERED_POSITIONS, 0.75f, true) {
         override fun removeEldestEntry(eldest: MutableMap.MutableEntry<Long, Long>) =
@@ -108,7 +110,31 @@ class PlayerController(
 
     private fun saveCurrentState(controller: MediaController) {
         if (!controller.isConnected) return
-        currentSongId(controller)?.let { id -> playbackStateStore.save(id, controller.currentPosition) }
+        val id = currentSongId(controller) ?: return
+        if (!shouldSavePosition(controller, id)) return
+        playbackStateStore.save(id, controller.currentPosition)
+    }
+
+    /**
+     * After restoring from a cold start the player is re-prepared. Until it is ready its position is
+     * not trustworthy, and if the source turned out to be unseekable it comes up at 0. Saving that
+     * would destroy the remembered position, so hold off and retry the seek once instead.
+     */
+    private fun shouldSavePosition(controller: MediaController, songId: Long): Boolean {
+        val pending = pendingRestore ?: return true
+        if (pending.songId != songId) {
+            pendingRestore = null
+            return true
+        }
+        if (controller.playbackState == Player.STATE_IDLE || controller.playbackState == Player.STATE_BUFFERING) {
+            return false
+        }
+        pendingRestore = null
+        if (controller.currentPosition < pending.positionMs - RESTORE_TOLERANCE_MS) {
+            controller.seekTo(pending.positionMs)
+            return false
+        }
+        return true
     }
 
     /** Rebuilds the UI state from the controller's own snapshot so it can never drift from it. */
@@ -176,12 +202,14 @@ class PlayerController(
             ?: return
         // The user may have started something else while we were waiting.
         if (this.controller !== controller || controller.currentMediaItem != null) return
+        pendingRestore = saved.takeIf { it.positionMs > 0L }
         controller.setMediaItem(song.toMediaItem(), saved.positionMs)
         controller.prepare()
     }
 
     fun playQueue(songs: List<Song>, startIndex: Int) {
         val controller = controller ?: return
+        pendingRestore = null
         currentSongId(controller)?.let { previousId ->
             lastPositions[previousId] = controller.currentPosition
             playbackStateStore.saveRecentPositions(lastPositions)
@@ -216,6 +244,7 @@ class PlayerController(
     fun seekTo(positionMs: Long) {
         val controller = controller ?: return
         val duration = controller.duration.takeIf { it != C.TIME_UNSET } ?: return
+        pendingRestore = null
         val target = positionMs.coerceIn(0L, duration)
         controller.seekTo(target)
         saveCurrentPosition(target)
@@ -224,6 +253,7 @@ class PlayerController(
     fun seekBy(deltaMs: Long) {
         val controller = controller ?: return
         val duration = controller.duration.takeIf { it != C.TIME_UNSET } ?: return
+        pendingRestore = null
         val target = (controller.currentPosition + deltaMs).coerceIn(0L, duration)
         controller.seekTo(target)
         saveCurrentPosition(target)
